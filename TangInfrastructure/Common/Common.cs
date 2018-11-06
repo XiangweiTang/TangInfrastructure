@@ -12,6 +12,7 @@ namespace TangInfrastructure
 {
     static class Common
     {
+        public static Random R = new Random();
         public static byte[] ReadBytes(string path, int n)
         {
             using(FileStream fs=new FileStream(path, FileMode.Open, FileAccess.Read))
@@ -80,6 +81,35 @@ namespace TangInfrastructure
         {
             WebClient client = new WebClient();
             client.DownloadFile(uri, path);
+        }
+
+        public static T[] Shuffle<T>(this IEnumerable<T> collection)
+        {
+            var array = collection.ToArray();
+            for(int i = 0; i < array.Length; i++)
+            {
+                int j = R.Next(array.Length);
+                T t = array[i];
+                array[i] = array[j];
+                array[j] = t;
+            }
+            return array;
+        }        
+
+        public static T[] ArrayTake<T>(this T[] inputArray, int take)
+        {
+            take = Math.Min(take, inputArray.Length);
+            T[] array = new T[take];
+            Array.Copy(inputArray, array, take);
+            return array;
+        }
+
+        public static T[] ArraySkip<T>(this T[] inputArray, int skip)
+        {
+            skip = Math.Min(inputArray.Length, skip);
+            T[] array = new T[inputArray.Length - skip];
+            Array.Copy(inputArray, skip, array, 0, inputArray.Length - skip);
+            return array;
         }
     }
 }
