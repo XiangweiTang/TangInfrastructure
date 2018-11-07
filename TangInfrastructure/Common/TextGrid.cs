@@ -16,15 +16,24 @@ namespace TangInfrastructure
         Regex PointReg = new Regex("points\\s*\\[([0-9]+)\\]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         char[] Trims = { ' ', '"' };
         public List<TextGridItem> ItemList = new List<TextGridItem>();
+        Dictionary<double, string> SpeakerStartDict = new Dictionary<double, string>();
+        public Dictionary<string, TextGridItem[]> ItemDict = new Dictionary<string, TextGridItem[]>();
 
         public TextGrid(string path)
         {
             var list = File.ReadLines(path);
-            ItemList = Parse(list).ToList();
+            Set(list);
         }
         public TextGrid(IEnumerable<string> list)
         {
+            Set(list);
+        }
+
+        private void Set(IEnumerable<string> list)
+        {
             ItemList = Parse(list).ToList();
+            ItemDict = ItemList.GroupBy(x => x.Name).ToDictionary(x => x.Key, x => x.ToArray());
+            SpeakerStartDict = ItemDict["SPK"].Cast<TextGridInterval>().ToDictionary(x => x.XMin, x => x.Text);
         }
 
         private IEnumerable<TextGridItem> Parse(IEnumerable<string> list)
@@ -101,6 +110,19 @@ namespace TangInfrastructure
                     continue;
                 }
             }
+        }
+
+        public IEnumerable<string> CreateChunkByChar(string sessionId, string audioPath)
+        {
+            return ItemDict["SYL"].Cast<TextGridInterval>().Select(x => GetSpeakerId(x, sessionId, audioPath));
+        }
+
+        private string GetSpeakerId(TextGridInterval interval, string sessionId, string audioPath)
+        {
+            string speakerId = SpeakerStartDict.Last(x => x.Key <= interval.XMin).Value;
+            if (speakerId != "A" && speakerId != "B")
+                speakerId = "U";
+            return string.Join("\t", interval.Index.ToString("000000"), speakerId, sessionId, interval.XMin, interval.XMax, interval.Text, audioPath);
         }
     }
     class TextGridItem

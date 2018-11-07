@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.IO;
 using System.Reflection;
+using System.Diagnostics;
 using System.Net;
 
 namespace TangInfrastructure
@@ -111,5 +112,23 @@ namespace TangInfrastructure
             Array.Copy(inputArray, skip, array, 0, inputArray.Length - skip);
             return array;
         }
+
+        public static string CleanUp(this string s)
+        {
+            return new string(s.Where(x => x <= '龟' && x >= '一').ToArray());
+        }
+
+        public static void RunFile(string filePath, string args, string workDir = "", bool newFolder = false)
+        {
+            Process proc = new Process();
+            proc.StartInfo.FileName = filePath;
+            proc.StartInfo.Arguments = args;
+            if (!string.IsNullOrWhiteSpace(workDir))
+                proc.StartInfo.WorkingDirectory = workDir;
+            proc.StartInfo.UseShellExecute = newFolder;
+            proc.Start();
+            proc.WaitForExit();
+        }
+
     }
 }

@@ -14,6 +14,7 @@ namespace TangInfrastructure
         public string CmdPath { get; private set; } = string.Empty;
         public string PowerShellPath { get; private set; } = string.Empty;
         public string TaskName { get; private set; } = string.Empty;
+        public string SoxPath { get; private set; } = @"C:\Program Files (x86)\sox-14-4-2\sox.exe";
 
         XmlNode CommonNode;
         XmlNode TaskNode;
