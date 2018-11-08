@@ -10,15 +10,53 @@ namespace TangInfrastructure
 {
     class Test
     {
+        char[] Sep = { ' ', '/' };
         Config Cfg = new Config();
         Regex NumReg = new Regex("[0-9]+", RegexOptions.Compiled);
         Regex ValidReg = new Regex("^[a-zA-Z_]*$", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            var list = Directory.EnumerateDirectories(@"D:\XiangweiTang\Data\ByChar\Train")
-                .Skip(4).Select(x => x.Split('\\').Last());
-            string line = string.Join(",", list);
-            File.WriteAllText(@"D:\XiangweiTang\Data\List.txt", line);
+            string path = @"D:\XiangweiTang\在职毕业设计\自然对话-银行";
+            //var list = Directory.EnumerateFiles(path, "*.textgrid").SelectMany(x => Intervals(x, "CC", "SYL")).ToList();            
+            string path1 = @"D:\XiangweiTang\在职毕业设计\自然对话-银行\NDYH0002.TextGrid";
+            TextGrid tg = new TextGrid(path1);
+            var list = tg.ReBuild();
+            File.WriteAllLines(@"D:\XiangweiTang\在职毕业设计\自然对话-银行\1.textgrid", list);
+        }
+
+        private IEnumerable<Tuple<string,string>> Intervals(string path, string bigKey, string smallKey)
+        {
+            TextGrid tg = new TextGrid(path);
+            var dict = tg.MatchInterval(bigKey, smallKey);
+            var list = dict.Select(x => new { big = (tg.ItemDict[bigKey][x.Key] as TextGridInterval).Text, small = x.Value.Select(y => (tg.ItemDict[smallKey][y] as TextGridInterval).Text).Aggregate((p, q) => p + " " + q) });
+            var newList= list.Select(x => new Tuple<string, string>(CleanupTrans( x.big),CleanupSyl( x.small)));
+            foreach(var t in newList)
+            {
+                if (t.Item1.Contains("儿") && t.Item1.Length == t.Item2.Split(' ').Length + 1)
+                    continue;
+                if (t.Item1.Length == 0 && t.Item2.Length == 0)
+                    continue;
+                if (t.Item1.Length == t.Item2.Split(' ').Length)
+                    continue;
+                yield return t;
+            }
+        }
+        private IEnumerable<string> IntervalGroups(string path,string intervalKey, string textKey)
+        {
+            TextGrid tg = new TextGrid(path);
+            var dict = tg.MatchIntervalText(intervalKey, textKey);
+            var list = dict.Select(x => string.Join(" ",x.Value.Select(y=> (tg.ItemDict[intervalKey][y] as TextGridInterval).Text)));
+            return list;
+        }
+
+        private string CleanupTrans(string s)
+        {
+            return new string(s.Where(x => x >= '一' && x <= '龟').ToArray());
+        }
+
+        private string CleanupSyl(string s)
+        {
+            return string.Join(" ", s.Split(Sep, StringSplitOptions.RemoveEmptyEntries).Where(x => !x.Contains("sil") && x != "xx" && x != "x"&&x!="xxx"));
         }
 
         private void SplitByChar()
