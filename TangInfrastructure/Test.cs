@@ -18,10 +18,13 @@ namespace TangInfrastructure
         {
             string path = @"D:\XiangweiTang\在职毕业设计\自然对话-银行";
             //var list = Directory.EnumerateFiles(path, "*.textgrid").SelectMany(x => Intervals(x, "CC", "SYL")).ToList();            
-            string path1 = @"D:\XiangweiTang\在职毕业设计\自然对话-银行\NDYH0002.TextGrid";
-            TextGrid tg = new TextGrid(path1);
-            var list = tg.ReBuild();
-            File.WriteAllLines(@"D:\XiangweiTang\在职毕业设计\自然对话-银行\1.textgrid", list);
+            string path1 = @"D:\public\tmp\bank\NDYH0002.TextGrid";
+            //TextGrid tg = new TextGrid(path1);
+            //var list = tg.ReBuild();
+            //File.WriteAllLines(@"D:\public\tmp\bank\1.TextGrid", list);
+            string path2 = @"D:\public\tmp\bank\1.TextGrid";
+            TextGrid newTg = new TextGrid(path2) { RunRebuild = false };
+            var list = newTg.MatchWords().ToList();
         }
 
         private IEnumerable<Tuple<string,string>> Intervals(string path, string bigKey, string smallKey)
@@ -29,7 +32,7 @@ namespace TangInfrastructure
             TextGrid tg = new TextGrid(path);
             var dict = tg.MatchInterval(bigKey, smallKey);
             var list = dict.Select(x => new { big = (tg.ItemDict[bigKey][x.Key] as TextGridInterval).Text, small = x.Value.Select(y => (tg.ItemDict[smallKey][y] as TextGridInterval).Text).Aggregate((p, q) => p + " " + q) });
-            var newList= list.Select(x => new Tuple<string, string>(CleanupTrans( x.big),CleanupSyl( x.small)));
+            var newList = list.Select(x => new Tuple<string, string>(Common.CleanupTrans(x.big), Common.CleanupSyl(x.small)));
             foreach(var t in newList)
             {
                 if (t.Item1.Contains("儿") && t.Item1.Length == t.Item2.Split(' ').Length + 1)
@@ -49,15 +52,6 @@ namespace TangInfrastructure
             return list;
         }
 
-        private string CleanupTrans(string s)
-        {
-            return new string(s.Where(x => x >= '一' && x <= '龟').ToArray());
-        }
-
-        private string CleanupSyl(string s)
-        {
-            return string.Join(" ", s.Split(Sep, StringSplitOptions.RemoveEmptyEntries).Where(x => !x.Contains("sil") && x != "xx" && x != "x"&&x!="xxx"));
-        }
 
         private void SplitByChar()
         {

@@ -13,6 +13,7 @@ namespace TangInfrastructure
 {
     static class Common
     {
+        static char[] Sep = { ' ', '/' };
         public static Random R = new Random();
         public static byte[] ReadBytes(string path, int n)
         {
@@ -130,5 +131,32 @@ namespace TangInfrastructure
             proc.WaitForExit();
         }
 
+        public static string CleanupSyl(string s)
+        {
+            return string.Join(" ", s.Split(Sep, StringSplitOptions.RemoveEmptyEntries).Where(x => !x.Contains("sil") && x != "xx" && x != "x" && x != "xxx"));
+        }
+
+        public static string CleanupTrans(string s)
+        {
+            return new string(s.Where(x => x >= '一' && x <= '龟').ToArray());
+        }
+        public static IEnumerable<object> SplitWords(string s)
+        {
+            if (s.Contains('儿'))
+            {
+                int index = s.IndexOf('儿');
+                int pre = index - 1;
+                for (int i = 0; i < pre; i++)
+                    yield return s[i];
+                yield return s.Substring(pre, 2);
+                for (int i = index + 1; i < s.Length; i++)
+                {
+                    yield return s[i];
+                }
+            }
+            else
+                foreach (char c in s)
+                    yield return c;
+        }
     }
 }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Collections;
 
 namespace TangInfrastructure
 {
@@ -40,7 +41,7 @@ namespace TangInfrastructure
             double xmax = double.Parse(Header[4].Split('=')[1].Trim());
             foreach (string line in Header)
                 yield return line;
-            foreach(var item in ItemDict)
+            foreach (var item in ItemDict)
             {
                 var first = item.Value[0];
                 yield return $"\titem [{first.TierIndex}]:";
@@ -54,7 +55,7 @@ namespace TangInfrastructure
                     yield return GetEqual($"intervals: size", item.Value.Count, "\t\t");
                     var list = item.Value.Cast<TextGridInterval>().ToList();
                     int n = 1;
-                    foreach(var interval in list)
+                    foreach (var interval in list)
                     {
                         yield return $"\t\tintervals [{n}]:";
                         yield return GetEqual("xmin", interval.XMin, "\t\t\t");
@@ -68,7 +69,7 @@ namespace TangInfrastructure
                     yield return GetEqual($"points: size", item.Value.Count, "\t\t");
                     var list = item.Value.Cast<TextGridText>().ToList();
                     int n = 1;
-                    foreach(var text in list)
+                    foreach (var text in list)
                     {
                         yield return $"\t\tpoints [{n}]:";
                         yield return GetEqual("number", text.Number, "\t\t\t");
@@ -90,20 +91,28 @@ namespace TangInfrastructure
             SpeakerStartDict = SpkList.ToDictionary(x => x.XMin, x => x.Text);
             if (RunRebuild)
             {
-                InsertBI();
-                var ccSeps = CcList.SelectMany(x => new double[] { x.XMax, x.XMax }).Distinct().ToList();
+                var ccSeps = CcList.SelectMany(x => new double[] { x.XMin, x.XMax }).Distinct().ToList();
                 SplitSilSyl(ccSeps);
                 SplitSilIf(ccSeps);
+                var sySeps = SylList.SelectMany(x => new double[] { x.XMax, x.XMin }).Distinct().ToList();
+                InsertBI(ccSeps, sySeps);
             }
         }
 
-        private void InsertBI()
+        private void InsertBI(List<double> ccSeps, List<double> sySeps)
         {
-            double min = SpkList[1].XMin;
-            double max = SpkList[SpkList.Count - 2].XMax;
-            ItemDict["BI"].Insert(0, new TextGridText { TierIndex = 7, Index = 0, Name = "BI", Type = "Text", Number = min, Mark = "4" });
-            int n = ItemDict["BI"].Count;
-            ItemDict["BI"].Add(new TextGridText { TierIndex = 7, Index = n, Name = "BI", Type = "Text", Number = max, Mark = "4" });
+
+            var bi = BiList[0];
+            var extraList = ccSeps.Except(BiList.Select(x => x.Number));
+            var extraBiList = extraList.Select(x => new TextGridText(bi) { Number = x, Mark = "4" });
+            var validCandidateList = sySeps.Select(x => new TextGridText(bi) { Number = x });
+
+            var totalList = extraBiList.Concat(BiList)
+                .Intersect(validCandidateList, new PointEqual())
+                .OrderBy(x => x.Number)
+                .Select((x, y) => { x.Index = y + 1; return x; });
+            ItemDict["BI"].Clear();
+            ItemDict["BI"].AddRange(totalList);
         }
 
         private void SplitSilSyl(List<double> ccSeps)
@@ -137,7 +146,7 @@ namespace TangInfrastructure
         private void SplitSilIf(List<double> ccSeps)
         {
             int ccIndex = 0;
-            for(int i = 0; i < IfList.Count - 1; i++)
+            for (int i = 0; i < IfList.Count - 1; i++)
             {
                 var item = IfList[i];
                 if (ccIndex + 1 >= ccSeps.Count)
@@ -163,6 +172,75 @@ namespace TangInfrastructure
         }
 
 
+
+        public IEnumerable<string> MatchWords()
+        {
+            var dict = MatchInterval("CC", "SYL");
+            int biIndex = 0;
+            foreach(var item in dict)
+            {
+                if (biIndex >= BiList.Count - 1)
+                    break;
+                var cc = CcList[item.Key];
+                cc.Text = Common.CleanupTrans(cc.Text);
+
+                var syls = item.Value
+                    .Select(x => { var t = SylList[x]; t.Text = Common.CleanupSyl(t.Text); return t; })
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Text))
+                    .ToList();
+                
+
+                var ccs = Common.SplitWords(cc.Text).Select(x => x.ToString()).ToList();
+                
+                if (ccs.Count == 0 && syls.Count == 0)
+                {
+
+                }
+                else if (ccs.Count == syls.Count)
+                {
+                    while (BiList[biIndex].Number < syls[0].XMin)
+                        biIndex++;
+                    List<string> wordList = new List<string>();
+                    List<string> currentWordList = new List<string>();
+                    List<string> sylList = new List<string>();
+                    List<string> currentSylList = new List<string>();
+                    double min = -1;
+                    double max = 0;
+                    for(int i = 0; i < syls.Count; i++)
+                    {
+                        if (string.IsNullOrWhiteSpace(syls[i].Text))
+                            continue;
+                        if(syls[i].XMin>=BiList[biIndex].Number)
+                        {
+                            if (currentWordList.Count > 0)
+                            {
+                                string word = string.Join(" ", currentWordList);
+                                string syl = string.Join(" ", currentSylList);
+                                yield return string.Join("\t", item.Key, word, syl, min, max);
+                                min = -1;
+                                wordList.Add(string.Join(" ", currentWordList));
+                                sylList.Add(string.Join(" ", currentSylList));
+                            }
+                            currentWordList.Clear();
+                            currentSylList.Clear();
+                            biIndex++;
+                        }
+                        if (min < 0)
+                            min = syls[i].XMin;
+                        max = syls[i].XMax;
+                        currentWordList.Add(ccs[i]);
+                        currentSylList.Add(syls[i].Text);
+                    }
+                    wordList.Add(string.Join(" ", currentWordList));
+                    sylList.Add(string.Join(" ", currentSylList));
+                }
+                else
+                {
+
+                }
+            }
+        }
+
         private IEnumerable<TextGridItem> Parse(IEnumerable<string> list)
         {
             TextGridItem currentItem = new TextGridItem();
@@ -172,11 +250,11 @@ namespace TangInfrastructure
             string currentName = string.Empty;
             bool inInterval = false;
             bool inHeader = true;
-            foreach(string line in list)
+            foreach (string line in list)
             {
                 if (InItemListReg.IsMatch(line))
                 {
-                    currentTier= int.Parse(InItemListReg.Match(line).Groups[1].Value);
+                    currentTier = int.Parse(InItemListReg.Match(line).Groups[1].Value);
                     currentItem.TierIndex = currentTier;
                     inHeader = false;
                     continue;
@@ -184,8 +262,8 @@ namespace TangInfrastructure
                 if (inHeader)
                     Header.Add(line);
                 if (NameReg.IsMatch(line))
-                {   
-                    currentName= NameReg.Match(line).Groups[1].Value;
+                {
+                    currentName = NameReg.Match(line).Groups[1].Value;
                     currentItem.Name = currentName;
                     continue;
                 }
@@ -196,16 +274,16 @@ namespace TangInfrastructure
                     currentItem.Index = int.Parse(IntervalReg.Match(line).Groups[1].Value);
                     currentInterval = new TextGridInterval(currentItem);
                     currentInterval.IsSet = true;
-                    currentItem = new TextGridItem { Name = currentName,TierIndex=currentTier };
+                    currentItem = new TextGridItem { Name = currentName, TierIndex = currentTier };
                     continue;
                 }
-                if (line.Trim().StartsWith("xmin")&&inInterval)
+                if (line.Trim().StartsWith("xmin") && inInterval)
                 {
                     Sanity.Requires(currentInterval.IsSet, "Invalid format.");
                     currentInterval.XMin = double.Parse(line.Split('=')[1].Trim());
                     continue;
                 }
-                if (line.Trim().StartsWith("xmax")&&inInterval)
+                if (line.Trim().StartsWith("xmax") && inInterval)
                 {
                     Sanity.Requires(currentInterval.IsSet, "Invalid format.");
                     currentInterval.XMax = double.Parse(line.Split('=')[1].Trim());
@@ -256,14 +334,14 @@ namespace TangInfrastructure
             return string.Join("\t", interval.Index.ToString("000000"), speakerId, sessionId, interval.XMin, interval.XMax, interval.Text, audioPath);
         }
 
-        public Dictionary<int,List<int>> MatchInterval(string bigKey, string smallKey)
+        public Dictionary<int, List<int>> MatchInterval(string bigKey, string smallKey)
         {
             var bigIntervals = ItemDict[bigKey].Cast<TextGridInterval>().ToArray();
             var smallIntervals = ItemDict[smallKey].Cast<TextGridInterval>().ToArray();
             Dictionary<int, List<int>> mappingDict = new Dictionary<int, List<int>>();
             int j = 0;
             List<int> currentList = new List<int>();
-            for(int i = 0; i < smallIntervals.Length; i++)
+            for (int i = 0; i < smallIntervals.Length; i++)
             {
                 if (smallIntervals[i].XMax > bigIntervals[j].XMin && smallIntervals[i].XMin < bigIntervals[j].XMax)
                 {
@@ -282,14 +360,14 @@ namespace TangInfrastructure
             return mappingDict;
         }
 
-        public Dictionary<int,List<int>> MatchIntervalText(string intervalKey, string textKey)
+        public Dictionary<int, List<int>> MatchIntervalText(string intervalKey, string textKey)
         {
             var intervals = ItemDict[intervalKey].Cast<TextGridInterval>().ToArray();
             var texts = ItemDict[textKey].Cast<TextGridText>().ToArray();
             List<int> currentList = new List<int>();
             Dictionary<int, List<int>> mappingDict = new Dictionary<int, List<int>>();
             int j = 0;
-            for(int i = 0; i < intervals.Length; i++)
+            for (int i = 0; i < intervals.Length; i++)
             {
                 if (intervals[i].XMin < texts[j].Number)
                 {
@@ -308,6 +386,19 @@ namespace TangInfrastructure
             if (currentList.Count > 0 && j < texts.Length)
                 mappingDict.Add(j, currentList.ToList());
             return mappingDict;
+        }
+    }
+
+    class PointEqual : IEqualityComparer<TextGridText>
+    {
+        public bool Equals(TextGridText x, TextGridText y)
+        {
+            return x.Number == y.Number;
+        }
+
+        public int GetHashCode(TextGridText tgt)
+        {
+            return tgt.Number.GetHashCode();
         }
     }
     class TextGridItem
