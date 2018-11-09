@@ -216,7 +216,7 @@ namespace TangInfrastructure
                             {
                                 string word = string.Join(" ", currentWordList);
                                 string syl = string.Join(" ", currentSylList);
-                                yield return string.Join("\t", item.Key, word, syl, min, max);
+                                yield return string.Join("\t", item.Key, word, syl, min, max - min);
                                 min = -1;
                                 wordList.Add(string.Join(" ", currentWordList));
                                 sylList.Add(string.Join(" ", currentSylList));
@@ -236,7 +236,7 @@ namespace TangInfrastructure
                 }
                 else
                 {
-                    yield return string.Join("\t", item.Key, string.Join(" ",ccs), string.Join(" ",syls.Select(x=>x.Text)));
+                    //yield return string.Join("\t", item.Key, string.Join(" ",ccs), string.Join(" ",syls.Select(x=>x.Text)));
                 }
             }
         }
