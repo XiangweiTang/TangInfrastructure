@@ -236,7 +236,7 @@ namespace TangInfrastructure
                 }
                 else
                 {
-
+                    yield return string.Join("\t", item.Key, string.Join(" ",ccs), string.Join(" ",syls.Select(x=>x.Text)));
                 }
             }
         }
