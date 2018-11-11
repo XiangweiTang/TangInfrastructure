@@ -114,6 +114,14 @@ namespace TangInfrastructure
             return array;
         }
 
+        public static T[] ArrayConcat<T>(this T[] head, T[] tail)
+        {
+            T[] array = new T[head.Length + tail.Length];
+            array.ArrayPlace(head, 0);
+            array.ArrayPlace(tail, head.Length);
+            return array;
+        }
+
         public static string CleanUp(this string s)
         {
             return new string(s.Where(x => x <= '龟' && x >= '一').ToArray());
@@ -157,6 +165,13 @@ namespace TangInfrastructure
             else
                 foreach (char c in s)
                     yield return c;
+        }
+
+        public static void ArrayPlace<T>(this T[] bigArray, T[] smallArray, int index)
+        {
+            Sanity.Requires(index >= 0, "Index cannot be less than 0.");
+            Sanity.Requires(smallArray.Length + index <= bigArray.Length, "Index out of range.");
+            Array.Copy(smallArray, 0, bigArray, index, smallArray.Length);
         }
     }
 }

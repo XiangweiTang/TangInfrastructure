@@ -16,15 +16,36 @@ namespace TangInfrastructure
         Regex ValidReg = new Regex("^[a-zA-Z_]*$", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            string path = @"D:\XiangweiTang\在职毕业设计\自然对话-银行";
-            //var list = Directory.EnumerateFiles(path, "*.textgrid").SelectMany(x => Intervals(x, "CC", "SYL")).ToList();            
-            string path1 = @"D:\public\tmp\bank\NDYH0002.TextGrid";
-            //TextGrid tg = new TextGrid(path1);
-            //var list = tg.ReBuild();
-            //File.WriteAllLines(@"D:\public\tmp\bank\1.TextGrid", list);
-            string path2 = @"D:\public\tmp\bank\1.TextGrid";
-            TextGrid newTg = new TextGrid(path2) { RunRebuild = false };
-            var list = newTg.MatchWords().ToList();
+            byte[] b = BitConverter.GetBytes(16000);
+            foreach(var filePath in Directory.EnumerateFiles(@"D:\XiangweiTang\Data\ByWord\Long", "*.wav", SearchOption.AllDirectories))
+            {
+                var bytes = File.ReadAllBytes(filePath);
+                bytes.ArrayPlace(b, 40);
+                File.WriteAllBytes(filePath, bytes);
+                Wave w = new Wave();
+                w.DeepParse(filePath);
+            }
+        }
+
+        private void TransportBigFolder()
+        {
+            string outputFolder = @"D:\XiangweiTang\Data\ByWord\Long";
+            var list = Directory.EnumerateDirectories(@"D:\XiangweiTang\Data\ByWord\Wav");
+            Parallel.ForEach(list, new ParallelOptions { MaxDegreeOfParallelism = 10 }, subFolderPath =>
+            {
+                if (Directory.EnumerateFiles(subFolderPath).Count() >= 10)
+                {
+                    string folderName = subFolderPath.Split('\\').Last();
+                    string outputSubFolder = Path.Combine(outputFolder, folderName);
+                    Directory.CreateDirectory(outputSubFolder);
+                    foreach (string filePath in Directory.EnumerateFiles(subFolderPath))
+                    {
+                        string fileName = filePath.Split('\\').Last();
+                        string outputPath = Path.Combine(outputSubFolder, fileName);
+                        File.Copy(filePath, outputPath);
+                    }
+                }
+            });
         }
 
         private IEnumerable<Tuple<string,string>> Intervals(string path, string bigKey, string smallKey)
@@ -52,6 +73,50 @@ namespace TangInfrastructure
             return list;
         }
 
+        private void CutByWords()
+        {
+            string path= @"D:\XiangweiTang\Data\ByWord\TC";
+            string tmpPath = @"D:\XiangweiTang\Data\Tmp";
+            string outputPath = @"D:\XiangweiTang\Data\ByWord\Wav";
+            Parallel.ForEach(Directory.EnumerateFiles(path), new ParallelOptions { MaxDegreeOfParallelism = 10 }, filePath =>
+             {
+                 Console.WriteLine("Processing " + filePath);
+                 var list = File.ReadLines(filePath).Select(x => new PhonLine(x));
+                 foreach(var line in list)
+                 {
+                     if (line.Duration >= 1)
+                         continue;
+                     string tmpOutputPath = Path.Combine(tmpPath, Guid.NewGuid().ToString() + ".wav");
+                     string args = $"{line.SrcAudioPath} {tmpOutputPath} trim {line.StartTime} {line.Duration}";
+                     Common.RunFile(Cfg.SoxPath, args);
+                     string outputFolder = Path.Combine(outputPath, NormPhon(line.Text));
+                     Directory.CreateDirectory(outputFolder);
+                     string outputFilePath = Path.Combine(outputFolder, $"{ line.SessionId}_{line.FileName}.wav");
+                     Wave.ExtendWave(tmpOutputPath, outputFilePath, 8000);
+                 }
+             });
+        }
+
+        private string NormPhon(string s)
+        {
+            return NumReg.Replace(s, string.Empty).Replace(" ", "_");
+        }
+
+        private void ResetTextGrid()
+        {
+            string inputPath= @"D:\XiangweiTang\在职毕业设计\自然对话-银行";
+            string outputPath = @"D:\XiangweiTang\Data\ByWord\Tc";
+            Parallel.ForEach(Directory.EnumerateFiles(inputPath, "*.textgrid"), new ParallelOptions { MaxDegreeOfParallelism = 10 }, filePath =>
+                 {
+                     Console.WriteLine("Processing " + filePath);
+                     string fileName = filePath.Split('\\').Last().Split('.')[0];
+                     string audioPath = Path.Combine(inputPath, fileName + ".wav");
+                     string outputFilePath = Path.Combine(outputPath, fileName + ".txt");
+                     TextGrid tg = new TextGrid(filePath);
+                     var outputList = tg.MatchWords().Select((x, y) => y.ToString("000000") + "\t" + fileName + "\t" + x + "\t" + audioPath);
+                     File.WriteAllLines(outputFilePath, outputList);
+                 });
+        }
 
         private void SplitByChar()
         {
@@ -123,7 +188,7 @@ namespace TangInfrastructure
                     continue;
                 string phonFolder = Path.Combine(outputFolder, tcLine.Text);
                 Directory.CreateDirectory(phonFolder);
-                string outputAudioPath = Path.Combine(phonFolder, $"{tcLine.SpeakerId.Replace("/","")}_{tcLine.SessionId}_{tcLine.FileName}.wav");
+                string outputAudioPath = Path.Combine(phonFolder, $"{tcLine.SessionId}_{tcLine.FileName}.wav");
                 string args = string.Join(" ", inputPath, outputAudioPath, "trim", tcLine.StartTime, tcLine.Duration);
                 Common.RunFile(Cfg.SoxPath, args);
             }

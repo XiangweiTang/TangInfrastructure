@@ -8,7 +8,6 @@ namespace TangInfrastructure
 {
     abstract class Line
     {
-        public string SpeakerId { get; protected set; } = string.Empty;
         public string SessionId { get; protected set; } = string.Empty;
         public string FileName { get; protected set; } = string.Empty;
         public string Text { get; protected set; } = string.Empty;
@@ -26,10 +25,10 @@ namespace TangInfrastructure
     }
     class TcLine : Line
     {
-        public double StartTime { get; private set; } = 0;
-        public double EndTime { get; private set; } = 0;
-        public double Duration => EndTime - StartTime;
-        public string SrcAudioPath { get; private set; } = string.Empty;
+        public double StartTime { get; protected set; } = 0;
+        public double EndTime { get; protected set; } = 0;
+        public double Duration { get; protected set; } = 0;
+        public string SrcAudioPath { get; protected set; } = string.Empty;
         public TcLine(string line) : base(line)
         {
 
@@ -38,7 +37,6 @@ namespace TangInfrastructure
         protected override IEnumerable<object> Get()
         {
             yield return FileName;
-            yield return SpeakerId;
             yield return SessionId;
             yield return StartTime;
             yield return EndTime;
@@ -51,12 +49,44 @@ namespace TangInfrastructure
             var split = line.Split('\t');
             Sanity.Requires(split.Length == 7, "Invalid TcLine.\t" + line);
             FileName = split[0];
-            SpeakerId = split[1];
-            SessionId = split[2];
-            StartTime = double.Parse(split[3]);
-            EndTime = double.Parse(split[4]);
-            Text = split[5];
-            SrcAudioPath = split[6];
+            SessionId = split[1];
+            StartTime = double.Parse(split[2]);
+            EndTime = double.Parse(split[3]);
+            Text = split[4];
+            SrcAudioPath = split[5];
+            Duration = EndTime - StartTime;
+        }
+    }
+
+    class PhonLine : TcLine
+    {
+        public PhonLine(string line) : base(line) { }
+        public int SentenceId { get; private set; } = 0;
+        public string Word { get; private set; } = string.Empty;
+        protected override IEnumerable<object> Get()
+        {
+            yield return FileName;
+            yield return SessionId;
+            yield return SentenceId;
+            yield return Word;
+            yield return Text;
+            yield return StartTime;
+            yield return Duration;
+            yield return SrcAudioPath;
+        }
+
+        protected override void Set(string line)
+        {
+            var split = line.Split('\t');
+            Sanity.Requires(split.Length == 8);
+            FileName = split[0];
+            SessionId = split[1];
+            SentenceId = int.Parse(split[2]);
+            Word = split[3];
+            Text = split[4];
+            StartTime = double.Parse(split[5]);
+            Duration = double.Parse(split[6]);
+            SrcAudioPath = split[7];
         }
     }
 }

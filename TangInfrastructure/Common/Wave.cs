@@ -148,6 +148,36 @@ namespace TangInfrastructure
             BitsPerSample = BitConverter.ToInt16(Bytes, fmtOffset + 22);
             AudioTime = ((double)_dataChunk.Length) / ByteRate;
         }
+
+        public static byte[] StandardPCMHeader(int sampleRate, int sampleNumber)
+        {
+            byte[] bytes = new byte[44];
+            bytes.ArrayPlace(Encoding.ASCII.GetBytes("RIFF"), 0);
+            bytes.ArrayPlace(BitConverter.GetBytes(sampleNumber + 36), 4);
+            bytes.ArrayPlace(Encoding.ASCII.GetBytes("WAVE"), 8);
+            bytes.ArrayPlace(Encoding.ASCII.GetBytes("fmt "), 12);
+            bytes.ArrayPlace(BitConverter.GetBytes(16), 16);
+            bytes.ArrayPlace(BitConverter.GetBytes((short)1), 20);
+            bytes.ArrayPlace(BitConverter.GetBytes((short)1), 22);
+            bytes.ArrayPlace(BitConverter.GetBytes(sampleRate), 24);
+            bytes.ArrayPlace(BitConverter.GetBytes(sampleRate * 2), 28);
+            bytes.ArrayPlace(BitConverter.GetBytes((short)2), 32);
+            bytes.ArrayPlace(BitConverter.GetBytes((short)16), 34);
+            bytes.ArrayPlace(Encoding.ASCII.GetBytes("data"), 36);
+            bytes.ArrayPlace(BitConverter.GetBytes(sampleNumber * 2), 40);
+            return bytes;
+        }
+
+        public static void ExtendWave(string inputPath, string outputPath, int sampleNumber)
+        {
+            Wave w = new Wave();
+            w.DeepParse(inputPath);
+            var dataBytes = w.DataBytes;
+            byte[] raw = new byte[sampleNumber * w.BitsPerSample / 8];
+            raw.ArrayPlace(dataBytes, 0);
+            var bytes= StandardPCMHeader(w.SampleRate, sampleNumber).ArrayConcat(raw);
+            File.WriteAllBytes(outputPath, bytes);
+        }
     }
 
     class Chunk
