@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace TangInfrastructure
 {
@@ -16,15 +17,73 @@ namespace TangInfrastructure
         Regex ValidReg = new Regex("^[a-zA-Z_]*$", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            string path = @"D:\XiangweiTang\在职毕业设计\自然对话-银行";
-            //var list = Directory.EnumerateFiles(path, "*.textgrid").SelectMany(x => Intervals(x, "CC", "SYL")).ToList();            
-            string path1 = @"D:\public\tmp\bank\NDYH0002.TextGrid";
-            //TextGrid tg = new TextGrid(path1);
-            //var list = tg.ReBuild();
-            //File.WriteAllLines(@"D:\public\tmp\bank\1.TextGrid", list);
-            string path2 = @"D:\public\tmp\bank\1.TextGrid";
-            TextGrid newTg = new TextGrid(path2) { RunRebuild = false };
-            var list = newTg.MatchWords().ToList();
+            var list = ParseMatchingXml(@"C:\Users\v-xianta\Downloads\en-zh.xml", @"C:\Users\v-xianta\Downloads\OpenSubtitles2011\xml", @"D:\public\tmp\OpenSubtitles2011\xml")
+                .SelectMany(x => x);
+            File.WriteAllLines("zh_en.txt", list);
+        }
+
+        #region OPUS
+        private IEnumerable<IEnumerable<string>> ParseMatchingXml(string path, string enPath, string zhPath)
+        {
+            XmlDocument xDoc = new XmlDocument();
+            xDoc.Load(path);
+            var pairNodes = xDoc.SelectNodes("cesAlign /linkGrp");
+            for(int i = 0;i< pairNodes.Count; i++)
+            {
+                var node = pairNodes[i];
+                string enGz = Path.Combine(enPath, node.Attributes["fromDoc"].Value);
+                string zhGz = Path.Combine(zhPath, node.Attributes["toDoc"].Value);
+                string enXml = enGz.Replace(".gz", ".xml");
+                string zhXml = zhGz.Replace(".gz", ".xml");
+                Common.Decompress(enGz, enXml);
+                Common.Decompress(zhGz, zhXml);
+                var matches = node.SelectNodes("link").Cast<XmlNode>().Select(x => x.Attributes["xtargets"].Value);
+                yield return ExtractTrans(enXml, zhXml, matches);
+            }
+        }
+
+        private IEnumerable<string> ExtractTrans(string enXml, string zhXml, IEnumerable<string> matches)
+        {
+            var enDict = XmlToDict(enXml);
+            var zhDict = XmlToDict(zhXml);
+            foreach(string match in matches)
+            {
+                string enIndices = match.Split(';')[0].Trim();
+                if (string.IsNullOrEmpty(enIndices))
+                    continue;
+                string chIndices = match.Split(';')[1].Trim();
+                if (string.IsNullOrEmpty(chIndices))
+                    continue;
+                string ch = string.Join(" ", chIndices.Split(' ').Select(x => zhDict[x]));
+                string en = string.Join(" ", enIndices.Split(' ').Select(x => enDict[x]));
+                yield return ch + "\t" + en;
+            }
+        }       
+        
+        private Dictionary<string,string> XmlToDict(string xmlPath)
+        {
+            XmlDocument xDoc = new XmlDocument();
+            xDoc.Load(xmlPath);
+            return xDoc.SelectNodes("document/s")
+                .Cast<XmlNode>()
+                .ToDictionary(x => x.Attributes["id"].Value, x => Merge(x));
+        }
+
+        private string Merge(XmlNode node)
+        {
+            return string.Join(" ", node.SelectNodes("w").Cast<XmlNode>().Select(x => x.InnerText));
+        }
+
+        #endregion
+
+        private void MergeSubtitlesRandomSample(string chsPath, string enuPath, string outputPath, double enuOffset, bool shuffle)
+        {
+            var chsArray = SubtitleMatch.ConvertToSubtitle(File.ReadLines(chsPath,Encoding.GetEncoding("GB2312")), 0).ToArray();
+            var enuArray = SubtitleMatch.ConvertToSubtitle(File.ReadLines(enuPath), enuOffset).ToArray();
+
+            var list = SubtitleMatch.SubtitleZip(chsArray, enuArray);
+            var outputList = shuffle ? list.Select(x => x.Item1.Overview + "\t" + x.Item2.Overview).Shuffle().Take(20) : list.Select(x => x.Item1.Content + "\t" + x.Item2.Content);
+            File.WriteAllLines(outputPath, outputList);
         }
 
         private IEnumerable<Tuple<string,string>> Intervals(string path, string bigKey, string smallKey)

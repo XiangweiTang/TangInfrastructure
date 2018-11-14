@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TangInfrastructure
 {
-    class Med
+    class Med<T>
     {
         public int INS { get; private set; } = 0;
         public int DEL { get; private set; } = 0;
@@ -16,9 +16,18 @@ namespace TangInfrastructure
         public int HYP { get; private set; }
         public double ErrorRate { get; private set; } = 0;
 
+        public IEnumerable<Tuple<T, T>> MatchedPairs
+        {
+            get
+            {
+                return _MathcedPairs.AsEnumerable().Reverse();
+            }
+        }
+        private List<Tuple<T, T>> _MathcedPairs = new List<Tuple<T, T>>();
+
         private int[,] Dp;
         public Med() { }
-        public void RunMed<T>(IEnumerable<T> refs,IEnumerable<T> hyps)
+        public void RunMed(IEnumerable<T> refs,IEnumerable<T> hyps)
         {
             T[] refArray = refs.ToArray();
             T[] hypArray = hyps.ToArray();
@@ -39,11 +48,11 @@ namespace TangInfrastructure
                 return;
             }
             RunDp(refArray, hypArray);
-            BackTrack(refArray, hypArray);
+            _MathcedPairs.AddRange(BackTrack(refArray, hypArray));
             ErrorRate = 100.0 * ERR / REF;
         }
 
-        private void RunDp<T>(T[] refArray, T[] hypArray)
+        private void RunDp(T[] refArray, T[] hypArray)
         {
             int refN = refArray.Length + 1;
             int hypN = hypArray.Length + 1;
@@ -68,7 +77,7 @@ namespace TangInfrastructure
             }
         }
 
-        private void BackTrack<T>(T[] refArray, T[] hypArray)
+        private IEnumerable<Tuple< T,T>> BackTrack(T[] refArray, T[] hypArray)
         {
             int r = refArray.Length;
             int h = hypArray.Length;
@@ -90,8 +99,9 @@ namespace TangInfrastructure
                 }
                 if (refArray[r - 1].Equals(hypArray[h - 1]))
                 {
+                    yield return new Tuple<T, T>(refArray[r - 1], hypArray[h - 1]);
                     r--;
-                    h--;
+                    h--;                    
                     continue;
                 }
                 if (Dp[r - 1, h] + 1 == Dp[r, h])
@@ -112,10 +122,7 @@ namespace TangInfrastructure
             }
         }
 
-        public string Output()
-        {
-            return string.Join("\t", OutputPart());
-        }
+        public string Output=> string.Join("\t", OutputPart());
 
         private IEnumerable<object> OutputPart()
         {

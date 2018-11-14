@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Diagnostics;
 using System.Net;
+using System.IO.Compression;
 
 namespace TangInfrastructure
 {
@@ -96,7 +97,7 @@ namespace TangInfrastructure
                 array[j] = t;
             }
             return array;
-        }        
+        }                
 
         public static T[] ArrayTake<T>(this T[] inputArray, int take)
         {
@@ -157,6 +158,21 @@ namespace TangInfrastructure
             else
                 foreach (char c in s)
                     yield return c;
+        }
+
+        public static void Decompress(string inputFilepath, string outputFilePath)
+        {
+            FileInfo inputFile = new FileInfo(inputFilepath);
+            using(FileStream inputFs = inputFile.OpenRead())
+            {
+                using(FileStream outputFs = File.Create(outputFilePath))
+                {
+                    using(GZipStream decompressStream=new GZipStream(inputFs, CompressionMode.Decompress))
+                    {
+                        decompressStream.CopyTo(outputFs);                        
+                    }
+                }
+            }
         }
     }
 }
