@@ -16,15 +16,9 @@ namespace TangInfrastructure
         Regex ValidReg = new Regex("^[a-zA-Z_]*$", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            byte[] b = BitConverter.GetBytes(16000);
-            foreach(var filePath in Directory.EnumerateFiles(@"D:\XiangweiTang\Data\ByWord\Long", "*.wav", SearchOption.AllDirectories))
-            {
-                var bytes = File.ReadAllBytes(filePath);
-                bytes.ArrayPlace(b, 40);
-                File.WriteAllBytes(filePath, bytes);
-                Wave w = new Wave();
-                w.DeepParse(filePath);
-            }
+            string path = @"D:\Download\zh_en.txt";
+            SubtitleProcess sp = new SubtitleProcess();
+            var list = sp.CleanSentencePair(path).ToList();
         }
 
         private void TransportBigFolder()
