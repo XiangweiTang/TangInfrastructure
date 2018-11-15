@@ -60,7 +60,7 @@ namespace TangInfrastructure
                         yield return $"\t\tintervals [{n}]:";
                         yield return GetEqual("xmin", interval.XMin, "\t\t\t");
                         yield return GetEqual("xmax", interval.XMax, "\t\t\t");
-                        yield return GetEqual("text", $"\"{interval.Text}\"", "\t\t\t");
+                        yield return GetEqual("text", $"\"{interval.Text.Replace("*", "")}\"", "\t\t\t");
                         n++;
                     }
                 }
@@ -216,7 +216,7 @@ namespace TangInfrastructure
                             {
                                 string word = string.Join(" ", currentWordList);
                                 string syl = string.Join(" ", currentSylList);
-                                yield return string.Join("\t", item.Key, word, syl, min, max - min);
+                                yield return string.Join("\t", item.Key, word, syl.Replace("*", "").Replace("?", ""), min, max - min);
                                 min = -1;
                                 wordList.Add(string.Join(" ", currentWordList));
                                 sylList.Add(string.Join(" ", currentSylList));
