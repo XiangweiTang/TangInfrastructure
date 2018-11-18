@@ -71,7 +71,7 @@ namespace TangInfrastructure
                });
         }
 
-        public static void ExtractTcLine(string rootPath, string outputRootPath)
+        public static void ExtractTcLine(string rootPath, string outputRootPath, bool overwrite)
         {
             foreach(string corpusFolder in Directory.EnumerateDirectories(rootPath))
             {
@@ -88,7 +88,7 @@ namespace TangInfrastructure
                           Console.WriteLine("Processing " + file.FullName);
                           string sessionId = file.FullName.Replace(localeFolder, string.Empty).Replace(file.Extension, string.Empty).Trim('\\').Replace("\\", "_");
                           string outputFilePath = Path.Combine(outputFolderPath, sessionId + "." + locale);
-                          if (!File.Exists(outputFilePath))
+                          if (!File.Exists(outputFilePath) || overwrite)
                           {
                               try
                               {
@@ -117,17 +117,20 @@ namespace TangInfrastructure
         {
             string internalId = sentenceNode.Attributes["id"].Value;
             OpusLine line = new OpusLine(locale, corpusName, "U", sessionId, internalId, 0, 0, string.Empty);
+            var timeNodes = sentenceNode.SelectNodes("time");
             try
             {
-                var timeNodes = sentenceNode.SelectNodes("time");
                 double startTime = Common.TimeStrToSec(timeNodes[0].Attributes["value"].Value);
-                double endTime = Common.TimeStrToSec(timeNodes[1].Attributes["value"].Value);
                 line.SetStartTime(startTime);
+            }
+            catch { }
+
+            try
+            {
+                double endTime = Common.TimeStrToSec(timeNodes[1].Attributes["value"].Value);
                 line.SetEndTime(endTime);
             }
-            catch
-            {
-            }
+            catch { }
             line.UpdateTranscript(Merge(sentenceNode));
             return line;
         }
