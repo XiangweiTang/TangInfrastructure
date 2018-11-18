@@ -229,6 +229,7 @@ namespace TangInfrastructure
     class OpusLine : NewTcLine
     {
         public string Locale { get; private set; } = string.Empty;
+        public OpusLine(string line) : base(line) { }
         public OpusLine(string locale, string corpusName, string speakerId, string sessionId, string internalId, double startTime, double endTime,string transcription, string srcAudioPath = "")
         : base(corpusName, speakerId, sessionId, internalId, startTime, endTime, transcription, srcAudioPath)
         {
@@ -238,11 +239,6 @@ namespace TangInfrastructure
             :base(corpusName,speakerId, sessionId, internalId, startTime, endTime, transcription, srcAudioPath)
         {
             Locale = locale;
-        }
-        public OpusLine(string internalId, bool unified=true,params OpusLine[] lines)
-        : base(internalId, unified, lines)
-        {
-            Locale = lines[0].Locale;
         }
         protected override IEnumerable<object> Get()
         {

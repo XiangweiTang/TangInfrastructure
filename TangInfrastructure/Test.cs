@@ -17,7 +17,10 @@ namespace TangInfrastructure
         Regex ValidReg = new Regex("^[a-zA-Z_]*$", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            OpusProcessing.ExtractTcLine(@"D:\XiangweiTang\Data\OpusXml", @"D:\XiangweiTang\Data\OpusTxt", true);
+            //PrepareData pd = new PrepareData(Cfg);
+            //pd.PrintData();
+            RunNmt rn = new RunNmt(Cfg);
+            rn.RunDemo();
         }
 
 
@@ -30,8 +33,6 @@ namespace TangInfrastructure
             var list = SubtitleMatch.SubtitleZip(chsArray, enuArray);
             var outputList = shuffle ? list.Select(x => x.Item1.Overview + "\t" + x.Item2.Overview).Shuffle().Take(20) : list.Select(x => x.Item1.Content + "\t" + x.Item2.Content);
             File.WriteAllLines(outputPath, outputList);
-            string path = @"D:\Download\zh_en.txt";
-            StringCleanup sp = new StringCleanup();
         }
 
         private void TransportBigFolder()

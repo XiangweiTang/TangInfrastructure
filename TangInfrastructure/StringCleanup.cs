@@ -10,12 +10,42 @@ namespace TangInfrastructure
 {
     class StringCleanup
     {
+        static Regex SpaceReg = new Regex("[\\s]{2,}", RegexOptions.Compiled);
+        static Regex IsoAps = new Regex("(^| )'( |$)", RegexOptions.Compiled);
+        static Regex MvAps = new Regex("([a-z]+)' ([a-z]+)", RegexOptions.Compiled);
+
         public static string CleanupChsString(string chsString)
+        {
+            string charClean = CleanupChsChar(chsString.ToLower());
+            string spaceClean = CleanupSpace(charClean);
+            return spaceClean;
+        }
+
+        public static string CleanupEnuString(string enuString)
+        {
+            string charClean = CleanupEnuChar(enuString.ToLower());
+            string apoClean = CleanupApos(charClean);
+            string spaceClean = CleanupSpace(apoClean);            
+            return spaceClean;
+        }
+
+        public static string CleanupApos(string inputString)
+        {            
+            string move = MvAps.Replace(inputString, "$1 '$2");
+            string removeIso = IsoAps.Replace(move, " ");
+            return removeIso;
+        }
+
+        public static string CleanupSpace(string inputString)
+        {
+            return SpaceReg.Replace(inputString, " ").Trim();
+        }
+        public static string CleanupChsChar(string chsString)
         {
             return new string(chsString.Where(ValidChs).ToArray());
         }
 
-        public static string CleanupEnuString(string enuString)
+        public static string CleanupEnuChar(string enuString)
         {
             return new string(enuString.Where(ValidEnu).ToArray());
         }

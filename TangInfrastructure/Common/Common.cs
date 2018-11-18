@@ -80,6 +80,19 @@ namespace TangInfrastructure
             return client.DownloadString(uri);
         }
 
+        public static void WritePairFiles(string outputPath1, string outputPath2, IEnumerable<Tuple<string, string>> outputPairList)
+        {
+            StreamWriter sw1 = new StreamWriter(outputPath1);
+            StreamWriter sw2 = new StreamWriter(outputPath2);
+            foreach(var pair in outputPairList)
+            {
+                sw1.WriteLine(pair.Item1);
+                sw2.WriteLine(pair.Item2);
+            }
+            sw1.Close();
+            sw2.Close();
+        }
+
         public static void DownloadFile(string uri, string path)
         {
             WebClient client = new WebClient();
@@ -112,6 +125,15 @@ namespace TangInfrastructure
             skip = Math.Min(inputArray.Length, skip);
             T[] array = new T[inputArray.Length - skip];
             Array.Copy(inputArray, skip, array, 0, inputArray.Length - skip);
+            return array;
+        }
+
+        public static T[] ArrayRange<T>(this T[] inputArray, int skip, int take)
+        {
+            skip = Math.Min(inputArray.Length, skip);
+            take = Math.Min(take, Math.Max(inputArray.Length - skip, 0));
+            T[] array = new T[take];
+            Array.Copy(inputArray, skip, array, 0, take);
             return array;
         }
 
@@ -233,6 +255,25 @@ namespace TangInfrastructure
                 }
                 yield return line;
             }
+        }
+        
+        public static IEnumerable<NewLine> GetLines(string path, string type)
+        {
+            var list = File.ReadLines(path);
+            switch (type.ToLower())
+            {
+                case "tc":
+                    return list.Select(x => new NewTcLine(x));
+                case "opus":
+                    return list.Select(x => new OpusLine(x));
+                default:
+                    throw new TangInfrastructureException("Invalid line type " + type);
+            }
+        }
+
+        public static IEnumerable<T> ToCollection<T>(params T[] items)
+        {
+            return items;
         }
     }
 }

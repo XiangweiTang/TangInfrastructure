@@ -10,68 +10,69 @@ namespace TangInfrastructure
 {
     class OpusProcessing
     {
-        private static IEnumerable<IEnumerable<Tuple<string,string>>> ParseMatchingXml(string path, string enPath, string zhPath)
+
+        public static void ProcessMatchGroups(string matchXmlPath,string rootInputFolder, string rootOutputFolder, string corpus, string fromLocale, string toLocale)
         {
-            XmlDocument xDoc = new XmlDocument();
-            xDoc.Load(path);
-            var pairNodes = xDoc.SelectNodes("cesAlign /linkGrp");
-            for (int i = 0; i < pairNodes.Count; i++)
+            XmlDocument xdoc = new XmlDocument();
+            xdoc.Load(matchXmlPath);
+            var grpNodes = xdoc.SelectNodes("cesAlign/linkGrp");
+            for(int i = 0; i < grpNodes.Count; i++)
             {
-                var node = pairNodes[i];
-                string enGz = Path.Combine(enPath, node.Attributes["fromDoc"].Value);
-                string zhGz = Path.Combine(zhPath, node.Attributes["toDoc"].Value);
-                string enXml = enGz.Replace(".gz", ".xml");
-                string zhXml = zhGz.Replace(".gz", ".xml");
-                Common.Decompress(enGz, enXml);
-                Common.Decompress(zhGz, zhXml);
-                var matches = node.SelectNodes("link").Cast<XmlNode>().Select(x => x.Attributes["xtargets"].Value);
-                yield return ExtractTrans(enXml, zhXml, matches);
+                var list = ProcessMatchGroup(grpNodes[i], rootInputFolder);
+                string fileName = Guid.NewGuid().ToString();
+                string corpusFolder = Path.Combine(rootOutputFolder, corpus);
+                Directory.CreateDirectory(corpusFolder);
+                string fromPath = Path.Combine(corpusFolder, fileName + "." + fromLocale);
+                string toPath = Path.Combine(corpusFolder, fileName + "." + toLocale);
+                Common.WritePairFiles(fromPath, toPath, list);
             }
         }
 
-        private static IEnumerable<Tuple<string,string>> ExtractTrans(string enXml, string zhXml, IEnumerable<string> matches)
+        private static IEnumerable<Tuple<string,string>> ProcessMatchGroup(XmlNode grpNode, string rootInputFolder)
         {
-            var enDict = XmlToDict(enXml);
-            var zhDict = XmlToDict(zhXml);
-            foreach (string match in matches)
+            string fromPath = RecoverPath(grpNode.Attributes["fromDoc"].Value, rootInputFolder);            
+            string toPath = RecoverPath(grpNode.Attributes["toDoc"].Value, rootInputFolder);            
+
+            var fromDict = Common.GetLines(fromPath, "opus").ToDictionary(x => x.InternalId, x => x.Transcription);
+            var toDict = Common.GetLines(toPath, "opus").ToDictionary(x => x.InternalId, x => x.Transcription);
+
+            var linkNodes = grpNode.SelectNodes("link");
+            for (int i = 0; i < linkNodes.Count; i++)
             {
-                string enIndices = match.Split(';')[0].Trim();
-                if (string.IsNullOrEmpty(enIndices))
-                    continue;
-                string chIndices = match.Split(';')[1].Trim();
-                if (string.IsNullOrEmpty(chIndices))
-                    continue;
-                string zh = string.Join(" ", chIndices.Split(' ').Select(x => zhDict[x]));
-                string en = string.Join(" ", enIndices.Split(' ').Select(x => enDict[x]));
-                yield return new Tuple<string, string>(zh, en);
+                var pair = GetMatchedPair(linkNodes[i], fromDict, toDict);
+                if (!string.IsNullOrWhiteSpace(pair.Item1) && !string.IsNullOrWhiteSpace(pair.Item2))
+                    yield return pair;
+            }
+        }
+        
+        private static Tuple<string,string> GetMatchedPair(XmlNode linkNode,Dictionary<string,string> fromDict, Dictionary<string,string> toDict)
+        {
+            string pairStr = linkNode.Attributes["xtargets"].Value;
+            try
+            {
+                var fromIndices = pairStr.Split(';')[0].Split(' ');
+                string fromStr = string.Join(" ", fromIndices.Select(x => fromDict[x]));
+
+                var toIndices = pairStr.Split(';')[1].Split(' ');
+                string toStr = string.Join(" ", toIndices.Select(x => toDict[x]));
+
+                return new Tuple<string, string>(fromStr, toStr);
+            }
+            catch
+            {
+                return new Tuple<string, string>(string.Empty, string.Empty);
             }
         }
 
-        private static Dictionary<string, string> XmlToDict(string xmlPath)
+        private static string RecoverPath(string xmlValue, string rootFolder)
         {
-            XmlDocument xDoc = new XmlDocument();
-            xDoc.Load(xmlPath);
-            return xDoc.SelectNodes("document/s")
-                .Cast<XmlNode>()
-                .ToDictionary(x => x.Attributes["id"].Value, x => Merge(x));
+            var split = xmlValue.ToLower().Replace(".xml.gz", ".txt").Split('/');
+            string locale = split[0];
+            string subPath = string.Join("_", split.Skip(1));
+            return Path.Combine(rootFolder, locale, subPath);
         }
 
-        private static string Merge(XmlNode node)
-        {
-            return string.Join(" ", node.SelectNodes("w").Cast<XmlNode>().Select(x => x.InnerText));
-        }
-
-        public static void Decompress(string rootPath)
-        {
-            Parallel.ForEach(Directory.EnumerateFiles(rootPath, "*.gz", SearchOption.AllDirectories), new ParallelOptions { MaxDegreeOfParallelism = 10 }, gzPath =>
-               {
-                   Console.WriteLine("Processing " + gzPath);
-                   string xmlPath = gzPath.ToLower().Replace(".gz", "");
-                   Common.Decompress(gzPath, xmlPath);
-               });
-        }
-
-        public static void ExtractTcLine(string rootPath, string outputRootPath, bool overwrite)
+        public static void ExtractOpusToTc(string rootPath, string outputRootPath, bool overwrite)
         {
             foreach(string corpusFolder in Directory.EnumerateDirectories(rootPath))
             {
@@ -81,13 +82,13 @@ namespace TangInfrastructure
                 {
                     string locale = localeFolder.Split('\\').Last();
                     var list = new DirectoryInfo(localeFolder).EnumerateFiles("*.xml", SearchOption.AllDirectories);
-                    string outputFolderPath = Path.Combine(outputRootPath, corpusName);
+                    string outputFolderPath = Path.Combine(outputRootPath, corpusName, locale);
                     Directory.CreateDirectory(outputFolderPath);
                     Parallel.ForEach(list, new ParallelOptions { MaxDegreeOfParallelism = 10 }, file =>
                       {
                           Console.WriteLine("Processing " + file.FullName);
                           string sessionId = file.FullName.Replace(localeFolder, string.Empty).Replace(file.Extension, string.Empty).Trim('\\').Replace("\\", "_");
-                          string outputFilePath = Path.Combine(outputFolderPath, sessionId + "." + locale);
+                          string outputFilePath = Path.Combine(outputFolderPath, $"{sessionId}.txt");
                           if (!File.Exists(outputFilePath) || overwrite)
                           {
                               try
@@ -135,6 +136,9 @@ namespace TangInfrastructure
             return line;
         }
 
-
+        private static string Merge(XmlNode node)
+        {
+            return string.Join(" ", node.SelectNodes("w").Cast<XmlNode>().Select(x => x.InnerText));
+        }
     }
 }
