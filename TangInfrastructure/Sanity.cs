@@ -29,6 +29,16 @@ namespace TangInfrastructure
         {
             Requires(valid, "Wave error.");
         }
+
+        public static void RequiresLine(bool valid, string lineType)
+        {
+            Requires(valid, $"Invalid {lineType} line.");
+        }
+
+        public static void RequiresLine(bool valid)
+        {
+            Requires(valid, "Invalid line.");
+        }
     }
 
     public class TangInfrastructureException : Exception

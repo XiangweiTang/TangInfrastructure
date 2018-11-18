@@ -177,16 +177,61 @@ namespace TangInfrastructure
 
         public static void Decompress(string inputFilepath, string outputFilePath)
         {
-            FileInfo inputFile = new FileInfo(inputFilepath);
-            using(FileStream inputFs = inputFile.OpenRead())
+            bool exceptionFlag = false;
+            try
             {
-                using(FileStream outputFs = File.Create(outputFilePath))
+                FileInfo inputFile = new FileInfo(inputFilepath);
+                using (FileStream inputFs = inputFile.OpenRead())
                 {
-                    using(GZipStream decompressStream=new GZipStream(inputFs, CompressionMode.Decompress))
+                    using (FileStream outputFs = File.Create(outputFilePath))
                     {
-                        decompressStream.CopyTo(outputFs);                        
+                        using (GZipStream decompressStream = new GZipStream(inputFs, CompressionMode.Decompress))
+                        {
+                            decompressStream.CopyTo(outputFs);
+                        }
                     }
                 }
+            }
+            catch
+            {
+                exceptionFlag = true;
+            }
+            finally
+            {
+                if (File.Exists(outputFilePath) && exceptionFlag)
+                    File.Delete(outputFilePath);
+            }
+        }
+
+        public static double TimeStrToSec(string timeStr)
+        {
+            var split = timeStr.Split(':');
+            string secStr = split.Last().Replace(',', '.');
+            double second = double.Parse(secStr);
+            if(split.Length>1)
+            {
+                string minStr = split[split.Length - 2];
+                second += 60 * int.Parse(minStr);
+            }
+            if (split.Length > 2)
+            {
+                string hrStr = split[split.Length - 3];
+                second += 3600 * int.Parse(hrStr);
+            }
+            return second;
+        }
+
+        public static IEnumerable<NewTcLine> ResetTimeStamp(IEnumerable<NewTcLine> list)
+        {
+            double lastEnd = 0;           
+            foreach(var line in list)
+            {
+                if (line.StartTime < lastEnd)
+                {
+                    line.SetStartTime(lastEnd);
+                    lastEnd = line.EndTime;
+                }
+                yield return line;
             }
         }
     }
