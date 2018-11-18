@@ -101,6 +101,8 @@ namespace TangInfrastructure
         public string InternalId { get; protected set; } = string.Empty;
         public string Transcription { get; protected set; } = string.Empty;
 
+        public NewLine() { }
+
         public NewLine(string line)
         {
             Set(line);
@@ -111,7 +113,7 @@ namespace TangInfrastructure
             CorpusName = corpusName;
             SessionId = sessionId;
             SpeakerId = speakerId;
-            InternalId = InternalId;
+            InternalId = internalId;
             Transcription = transcription;
         }
 
@@ -156,6 +158,8 @@ namespace TangInfrastructure
         public double EndTime { get; protected set; } = 0;
         public double Duration => EndTime - StartTime;
         public string SrcAudioPath { get; protected set; } = string.Empty;
+
+        public NewTcLine() : base() { }
 
         public NewTcLine(string line) : base(line)
         {

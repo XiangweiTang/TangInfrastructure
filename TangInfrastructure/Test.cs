@@ -17,8 +17,7 @@ namespace TangInfrastructure
         Regex ValidReg = new Regex("^[a-zA-Z_]*$", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            string path = @"D:\XiangweiTang\Data\Opus";
-            OpusProcessing.Decompress(path);
+            OpusProcessing.ExtractTcLine(@"D:\XiangweiTang\Data\OpusXml", @"D:\XiangweiTang\Data\OpusTxt");
         }
 
 

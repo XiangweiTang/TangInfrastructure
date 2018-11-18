@@ -70,5 +70,68 @@ namespace TangInfrastructure
                    Common.Decompress(gzPath, xmlPath);
                });
         }
+
+        public static void ExtractTcLine(string rootPath, string outputRootPath)
+        {
+            foreach(string corpusFolder in Directory.EnumerateDirectories(rootPath))
+            {
+                string corpusName = corpusFolder.Split('\\').Last();
+                string xmlPath = Path.Combine(corpusFolder, "xml");
+                foreach(string localeFolder in Directory.EnumerateDirectories(xmlPath))
+                {
+                    string locale = localeFolder.Split('\\').Last();
+                    var list = new DirectoryInfo(localeFolder).EnumerateFiles("*.xml", SearchOption.AllDirectories);
+                    string outputFolderPath = Path.Combine(outputRootPath, corpusName);
+                    Directory.CreateDirectory(outputFolderPath);
+                    Parallel.ForEach(list, new ParallelOptions { MaxDegreeOfParallelism = 10 }, file =>
+                      {
+                          Console.WriteLine("Processing " + file.FullName);
+                          string sessionId = file.FullName.Replace(localeFolder, string.Empty).Replace(file.Extension, string.Empty).Trim('\\').Replace("\\", "_");
+                          string outputFilePath = Path.Combine(outputFolderPath, sessionId + "." + locale);
+                          if (!File.Exists(outputFilePath))
+                          {
+                              try
+                              {
+                                  var oList = ExtractTcLine(file.FullName, locale, corpusName, sessionId).Select(x => x.Output);
+                                  File.WriteAllLines(outputFilePath, oList);
+                              }
+                              catch { }
+                          }
+                      });
+                }
+            }
+        }        
+
+        private static IEnumerable<OpusLine> ExtractTcLine(string xmlPath, string locale, string corpusName, string sessionId)
+        {
+            XmlDocument xdoc = new XmlDocument();
+            xdoc.Load(xmlPath);
+            var nodes = xdoc.SelectNodes("document/s");
+            for(int i = 0; i < nodes.Count; i++)
+            {
+                yield return ExtractTcLine(nodes[i], locale, corpusName, sessionId);
+            }
+        }
+
+        private static OpusLine ExtractTcLine(XmlNode sentenceNode, string locale, string corpusName, string sessionId)
+        {
+            string internalId = sentenceNode.Attributes["id"].Value;
+            OpusLine line = new OpusLine(locale, corpusName, "U", sessionId, internalId, 0, 0, string.Empty);
+            try
+            {
+                var timeNodes = sentenceNode.SelectNodes("time");
+                double startTime = Common.TimeStrToSec(timeNodes[0].Attributes["value"].Value);
+                double endTime = Common.TimeStrToSec(timeNodes[1].Attributes["value"].Value);
+                line.SetStartTime(startTime);
+                line.SetEndTime(endTime);
+            }
+            catch
+            {
+            }
+            line.UpdateTranscript(Merge(sentenceNode));
+            return line;
+        }
+
+
     }
 }
