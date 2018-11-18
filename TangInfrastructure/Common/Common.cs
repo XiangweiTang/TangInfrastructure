@@ -177,6 +177,8 @@ namespace TangInfrastructure
 
         public static void Decompress(string inputFilepath, string outputFilePath)
         {
+            if (File.Exists(outputFilePath))
+                return;
             FileInfo inputFile = new FileInfo(inputFilepath);
             using(FileStream inputFs = inputFile.OpenRead())
             {
