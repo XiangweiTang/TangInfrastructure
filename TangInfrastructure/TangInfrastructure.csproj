@@ -49,8 +49,8 @@
     <Compile Include="Common\TextGrid.cs" />
     <Compile Include="Common\Wave.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="Common\Interval.cs" />
     <Compile Include="Line.cs" />
-    <Compile Include="MED.cs" />
     <Compile Include="OpusProcessing.cs" />
     <Compile Include="PrepareData.cs" />
     <Compile Include="Program.cs" />
@@ -58,7 +58,7 @@
     <Compile Include="RunNmt.cs" />
     <Compile Include="Sanity.cs" />
     <Compile Include="SubtitleMatch.cs" />
-    <Compile Include="StringCleanup.cs" />
+    <Compile Include="Common\StringCleanup.cs" />
     <Compile Include="TangFeature.cs" />
     <Compile Include="Test.cs" />
   </ItemGroup>
