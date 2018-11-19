@@ -80,6 +80,14 @@ namespace TangInfrastructure
             }
         }
 
+        public void Test()
+        {
+            var ccList = ItemDict["CC"].Cast<TextGridInterval>().Cast<IInterval>().ToList();
+            var sylList = ItemDict["SPK"].Cast<TextGridInterval>().Cast<IInterval>().ToList();
+            var dict = Interval.CreateContainDict(ccList, sylList);
+            var list = dict.Select(x => new { key = SpkList[x.Key].Text, value = x.Value.Select(y => CcList[y].Text).ToList() }).ToList();
+        }
+
         private string GetEqual(string key, object value, string prefix)
         {
             return prefix + string.Join(" = ", key, value);
@@ -417,7 +425,7 @@ namespace TangInfrastructure
             IsSet = item.IsSet;
         }
     }
-    class TextGridInterval : TextGridItem
+    class TextGridInterval : TextGridItem, IInterval
     {
         public double XMin { get; set; } = 0;
         public double XMax { get; set; } = 0;
@@ -426,6 +434,16 @@ namespace TangInfrastructure
         public TextGridInterval(TextGridItem item):base(item)
         {
             Type = "Interval";            
+        }
+
+        public double Start()
+        {
+            return XMin;
+        }
+
+        public double End()
+        {
+            return XMax;
         }
     }
     class TextGridText : TextGridItem

@@ -15,7 +15,7 @@ namespace TangInfrastructure
             Cfg = cfg;
         }
 
-        public void PrintData()
+        public void PrepareOpusData()
         {
             var parallelData = Cfg.UsedData
                 .SelectMany(x => GetPairFile(Path.Combine(Cfg.ParallelDataFolder, x))).SelectMany(x => x);

@@ -17,10 +17,8 @@ namespace TangInfrastructure
         Regex ValidReg = new Regex("^[a-zA-Z_]*$", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            //PrepareData pd = new PrepareData(Cfg);
-            //pd.PrintData();
-            RunNmt rn = new RunNmt(Cfg);
-            rn.RunDemo();
+            TextGrid tg = new TextGrid(@"D:\private\Bank\bank\NDYH0002.TextGrid");
+            tg.Test();
         }
 
 
