@@ -31,17 +31,20 @@ namespace TangInfrastructure
         private static IEnumerable<Tuple<string,string>> ProcessMatchGroup(XmlNode grpNode, string rootInputFolder)
         {
             string fromPath = RecoverPath(grpNode.Attributes["fromDoc"].Value, rootInputFolder);            
-            string toPath = RecoverPath(grpNode.Attributes["toDoc"].Value, rootInputFolder);            
-
-            var fromDict = Common.GetLines(fromPath, "opus").ToDictionary(x => x.InternalId, x => x.Transcription);
-            var toDict = Common.GetLines(toPath, "opus").ToDictionary(x => x.InternalId, x => x.Transcription);
-
-            var linkNodes = grpNode.SelectNodes("link");
-            for (int i = 0; i < linkNodes.Count; i++)
+            string toPath = RecoverPath(grpNode.Attributes["toDoc"].Value, rootInputFolder);
+            if (File.Exists(fromPath) && File.Exists(toPath))
             {
-                var pair = GetMatchedPair(linkNodes[i], fromDict, toDict);
-                if (!string.IsNullOrWhiteSpace(pair.Item1) && !string.IsNullOrWhiteSpace(pair.Item2))
-                    yield return pair;
+                Console.WriteLine("Processing " + fromPath);
+                var fromDict = Common.GetLines(fromPath, "opus").ToDictionary(x => x.InternalId, x => x.Transcription);
+                var toDict = Common.GetLines(toPath, "opus").ToDictionary(x => x.InternalId, x => x.Transcription);
+
+                var linkNodes = grpNode.SelectNodes("link");
+                for (int i = 0; i < linkNodes.Count; i++)
+                {
+                    var pair = GetMatchedPair(linkNodes[i], fromDict, toDict);
+                    if (!string.IsNullOrWhiteSpace(pair.Item1) && !string.IsNullOrWhiteSpace(pair.Item2))
+                        yield return pair;
+                }
             }
         }
         
@@ -139,6 +142,15 @@ namespace TangInfrastructure
         private static string Merge(XmlNode node)
         {
             return string.Join(" ", node.SelectNodes("w").Cast<XmlNode>().Select(x => x.InnerText));
+        }
+
+        public static void Decompress(string rootFolder)
+        {
+            Parallel.ForEach(Directory.EnumerateFiles(rootFolder, "*.gz", SearchOption.AllDirectories), new ParallelOptions { MaxDegreeOfParallelism = 10 }, gzPath =>
+               {
+                   string xmlPath = gzPath.Replace(".gz", "");
+                   Common.Decompress(gzPath, xmlPath);
+               });
         }
     }
 }

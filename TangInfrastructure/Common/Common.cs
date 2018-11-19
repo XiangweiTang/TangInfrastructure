@@ -202,6 +202,8 @@ namespace TangInfrastructure
             bool exceptionFlag = false;
             try
             {
+                if (File.Exists(outputFilePath))
+                    File.Delete(outputFilePath);
                 FileInfo inputFile = new FileInfo(inputFilepath);
                 using (FileStream inputFs = inputFile.OpenRead())
                 {
@@ -220,6 +222,7 @@ namespace TangInfrastructure
             }
             finally
             {
+                Console.WriteLine(outputFilePath + "\tDecompressed.");
                 if (File.Exists(outputFilePath) && exceptionFlag)
                     File.Delete(outputFilePath);
             }

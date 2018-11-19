@@ -17,8 +17,12 @@ namespace TangInfrastructure
         Regex ValidReg = new Regex("^[a-zA-Z_]*$", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            TextGrid tg = new TextGrid(@"D:\private\Bank\bank\NDYH0002.TextGrid");
-            tg.Test();
+            string xmlPath = @"D:\XiangweiTang\Data\OpusXml\OpenSubtitles2013\xml\en-zh_cn.xml";
+            string rootInputFolder = @"D:\XiangweiTang\Data\OpusXml";
+            string rootOutputFolder = @"D:\XiangweiTang\Data\OpusTxt";
+            //OpusProcessing.ProcessMatchGroups(xmlPath, rootInputFolder,  rootOutputFolder, "OpenSubtitles2013", "en", "zh");
+            OpusProcessing.ExtractOpusToTc(rootInputFolder, rootOutputFolder, false);
+            //OpusProcessing.Decompress(@"D:\XiangweiTang\Data\OpusXml\OpenSubtitles2013\xml\en");
         }
 
 
