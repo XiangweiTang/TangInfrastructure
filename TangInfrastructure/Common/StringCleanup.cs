@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace TangInfrastructure
 {
-    class StringCleanup
+    static class StringCleanup
     {
         static Regex SpaceReg = new Regex("[\\s]{2,}", RegexOptions.Compiled);
         static Regex IsoAps = new Regex("(^| )'( |$)", RegexOptions.Compiled);
@@ -17,7 +17,8 @@ namespace TangInfrastructure
         public static string CleanupChsString(string chsString)
         {
             string charClean = CleanupChsChar(chsString.ToLower());
-            string spaceClean = CleanupSpace(charClean);
+            string gbk = BigToGbk(charClean);
+            string spaceClean = CleanupSpace(gbk);
             return spaceClean;
         }
 
@@ -40,9 +41,15 @@ namespace TangInfrastructure
         {
             return SpaceReg.Replace(inputString, " ").Trim();
         }
+
         public static string CleanupChsChar(string chsString)
         {
             return new string(chsString.Where(ValidChs).ToArray());
+        }
+        
+        public static string BigToGbk(string bigString)
+        {
+            return new string(bigString.Select(x => BigToGbkDict.ContainsKey(x) ? BigToGbkDict[x] : x).ToArray());
         }
 
         public static string CleanupEnuChar(string enuString)
@@ -60,5 +67,8 @@ namespace TangInfrastructure
                return (x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || (x >= '0' && x <= '9') || x == '\'' || x == ' ';
            };
 
+        public static Dictionary<char, char> BigToGbkDict =>
+            Common.ReadEmbed($"{Constants.PROJECT_NAME}.Common.GBK_BIG.txt")
+                .ToDictionary(x => x[2], x => x[0]);
     }
 }

@@ -16,14 +16,16 @@ namespace TangInfrastructure
             XmlDocument xdoc = new XmlDocument();
             xdoc.Load(matchXmlPath);
             var grpNodes = xdoc.SelectNodes("cesAlign/linkGrp");
+            string fromFolder = Path.Combine(rootOutputFolder, corpus, fromLocale);
+            Directory.CreateDirectory(fromFolder);
+            string toFolder = Path.Combine(rootOutputFolder, corpus, toLocale);
+            Directory.CreateDirectory(toFolder);
             for(int i = 0; i < grpNodes.Count; i++)
             {
                 var list = ProcessMatchGroup(grpNodes[i], rootInputFolder);
                 string fileName = Guid.NewGuid().ToString();
-                string corpusFolder = Path.Combine(rootOutputFolder, corpus);
-                Directory.CreateDirectory(corpusFolder);
-                string fromPath = Path.Combine(corpusFolder, fileName + "." + fromLocale);
-                string toPath = Path.Combine(corpusFolder, fileName + "." + toLocale);
+                string fromPath = Path.Combine(fromFolder, fileName + ".txt");
+                string toPath = Path.Combine(toFolder, fileName + ".txt");
                 Common.WritePairFiles(fromPath, toPath, list);
             }
         }

@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\Common.cs" />
+    <Compile Include="Common\Constants.cs" />
     <Compile Include="Common\Med.cs" />
     <Compile Include="Common\SplitData.cs" />
     <Compile Include="Common\TextGrid.cs" />
@@ -67,7 +68,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Config.xml" />
-    <Content Include="Data\GBK_BIG.txt" />
+    <EmbeddedResource Include="Data\GBK_BIG.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Features\" />
