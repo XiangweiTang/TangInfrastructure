@@ -18,11 +18,13 @@ namespace TangInfrastructure
         public Test(string[] args)
         {
             string xmlPath = @"D:\XiangweiTang\Data\OpusXml\OpenSubtitles2013\xml\en-zh_cn.xml";
-            string rootInputFolder = @"D:\XiangweiTang\Data\OpusXml";
-            string rootOutputFolder = @"D:\XiangweiTang\Data\OpusTxt";
+            string rootInputFolder = @"D:\XiangweiTang\Data\OpusTxt\OpenSubtitles2013";
+            string rootOutputFolder = @"D:\XiangweiTang\Data\OpusPair";
             //OpusProcessing.ProcessMatchGroups(xmlPath, rootInputFolder,  rootOutputFolder, "OpenSubtitles2013", "en", "zh");
-            OpusProcessing.ExtractOpusToTc(rootInputFolder, rootOutputFolder, false);
+            //OpusProcessing.ExtractOpusToTc(rootInputFolder, rootOutputFolder, false);
             //OpusProcessing.Decompress(@"D:\XiangweiTang\Data\OpusXml\OpenSubtitles2013\xml\en");
+            PrepareData pd = new PrepareData(Cfg);
+            pd.PrepareOpusData();
         }
 
 

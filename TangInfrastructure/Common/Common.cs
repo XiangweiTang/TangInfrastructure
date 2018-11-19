@@ -16,6 +16,10 @@ namespace TangInfrastructure
     {
         static char[] Sep = { ' ', '/' };
         public static Random R = new Random();
+        static Common()
+        {
+            SetDict();
+        }
         public static byte[] ReadBytes(string path, int n)
         {
             using(FileStream fs=new FileStream(path, FileMode.Open, FileAccess.Read))
@@ -277,6 +281,14 @@ namespace TangInfrastructure
         public static IEnumerable<T> ToCollection<T>(params T[] items)
         {
             return items;
+        }
+
+
+        public static Dictionary<char, char> BigToGbkDict = new Dictionary<char, char>();
+        private static void SetDict()
+        {
+            BigToGbkDict = Common.ReadEmbed($"{Constants.PROJECT_NAME}.Data.GBK_BIG.txt")
+                 .ToDictionary(x => x[2], x => x[0]);
         }
     }
 }

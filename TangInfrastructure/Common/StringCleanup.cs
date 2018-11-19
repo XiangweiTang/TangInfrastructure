@@ -49,7 +49,7 @@ namespace TangInfrastructure
         
         public static string BigToGbk(string bigString)
         {
-            return new string(bigString.Select(x => BigToGbkDict.ContainsKey(x) ? BigToGbkDict[x] : x).ToArray());
+            return new string(bigString.Select(x =>Common. BigToGbkDict.ContainsKey(x) ?Common. BigToGbkDict[x] : x).ToArray());
         }
 
         public static string CleanupEnuChar(string enuString)
@@ -67,8 +67,5 @@ namespace TangInfrastructure
                return (x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || (x >= '0' && x <= '9') || x == '\'' || x == ' ';
            };
 
-        public static Dictionary<char, char> BigToGbkDict =>
-            Common.ReadEmbed($"{Constants.PROJECT_NAME}.Common.GBK_BIG.txt")
-                .ToDictionary(x => x[2], x => x[0]);
     }
 }

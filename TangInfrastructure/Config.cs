@@ -10,8 +10,8 @@ namespace TangInfrastructure
 {
     class Config
     {
-        public string ParallelDataFolder { get; private set; } = @"D:\XiangweiTang\Data\OpusPair";
-        public string WorkFolder { get; private set; } = @"D:\tmp\Custom_nmt";
+        public string ParallelDataFolder { get; private set; } = @"D:\XiangweiTang\Data\OpusPair\";
+        public string WorkFolder { get; private set; } = @"D:\tmp\Custom_nmt_2013";
         public string SrcLocale { get; private set; } = "zh";
         public int SrcVocabSize { get; private set; } = 5000;
         public string TgtLocale { get; private set; } = "en";
@@ -23,7 +23,7 @@ namespace TangInfrastructure
         public string SoxPath { get; private set; } = @"C:\Program Files (x86)\sox-14-4-2\sox.exe";
         public string NmtFolder { get; private set; } = @"D:\XiangweiTang\Python\nmt";
         public int TrainSteps { get; private set; } = 12000;
-        public IEnumerable<string> UsedData { get; private set; } = Common.ToCollection("OpenSubtitles");
+        public IEnumerable<string> UsedData { get; private set; } = Common.ToCollection("OpenSubtitles2013");
 
 
         /*

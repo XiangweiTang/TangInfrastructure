@@ -22,11 +22,18 @@ namespace TangInfrastructure
             Directory.CreateDirectory(toFolder);
             for(int i = 0; i < grpNodes.Count; i++)
             {
-                var list = ProcessMatchGroup(grpNodes[i], rootInputFolder);
-                string fileName = Guid.NewGuid().ToString();
-                string fromPath = Path.Combine(fromFolder, fileName + ".txt");
-                string toPath = Path.Combine(toFolder, fileName + ".txt");
-                Common.WritePairFiles(fromPath, toPath, list);
+                try
+                {
+                    var list = ProcessMatchGroup(grpNodes[i], rootInputFolder);
+                    if (list.Count() > 0)
+                    {
+                        string fileName = Guid.NewGuid().ToString();
+                        string fromPath = Path.Combine(fromFolder, fileName + ".txt");
+                        string toPath = Path.Combine(toFolder, fileName + ".txt");
+                        Common.WritePairFiles(fromPath, toPath, list);
+                    }
+                }
+                catch { }
             }
         }
 

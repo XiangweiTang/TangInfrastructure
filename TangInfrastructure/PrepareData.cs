@@ -49,16 +49,15 @@ namespace TangInfrastructure
 
         private IEnumerable<IEnumerable<Tuple<string, string>>> GetPairFile(string folderPath)
         {
-            string pattern = "*." + Cfg.SrcLocale;
-            foreach (string srcPath in Directory.EnumerateFiles(folderPath, pattern))
+            string srcFolder = Path.Combine(folderPath, Cfg.SrcLocale);
+            string tgtFolder = Path.Combine(folderPath, Cfg.TgtLocale);
+            foreach(string srcFilePath in Directory.EnumerateFiles(srcFolder))
             {
-                string tgtPath = srcPath.ToLower().Replace("." + Cfg.SrcLocale.ToLower(), "") + "." + Cfg.TgtLocale;
-                if (File.Exists(tgtPath))
-                {
-                    var srcList = File.ReadLines(srcPath);
-                    var tgtList = File.ReadLines(tgtPath);
-                    yield return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y));
-                }
+                string fileName = srcFilePath.Split('\\').Last();
+                string tgtFilePath = Path.Combine(tgtFolder, fileName);
+                var srcList = File.ReadLines(srcFilePath);
+                var tgtList = File.ReadLines(tgtFilePath);
+                yield return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y));
             }
         }
 
