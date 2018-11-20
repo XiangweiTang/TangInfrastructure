@@ -283,6 +283,16 @@ namespace TangInfrastructure
             return items;
         }
 
+        public static void FolderTransport(string inputFolderPath, string outputFolderPath, Func<string,string,bool> fileTransport, string pattern="*")
+        {
+            Parallel.ForEach(Directory.EnumerateFiles(inputFolderPath, pattern), new ParallelOptions { MaxDegreeOfParallelism = 10 }, inputFilePath =>
+            {
+                Console.WriteLine("Processing " + inputFilePath);
+                string fileName = inputFilePath.Split('\\').Last();
+                string outputFilePath = Path.Combine(outputFolderPath, fileName);
+                fileTransport(inputFilePath, outputFilePath);
+            });
+        }
 
         public static Dictionary<char, char> BigToGbkDict = new Dictionary<char, char>();
         private static void SetDict()
