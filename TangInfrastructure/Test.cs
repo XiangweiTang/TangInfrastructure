@@ -23,8 +23,11 @@ namespace TangInfrastructure
             //OpusProcessing.ProcessMatchGroups(xmlPath, rootInputFolder,  rootOutputFolder, "OpenSubtitles2013", "en", "zh");
             //OpusProcessing.ExtractOpusToTc(rootInputFolder, rootOutputFolder, false);
             //OpusProcessing.Decompress(@"D:\XiangweiTang\Data\OpusXml\OpenSubtitles2013\xml\en");
-            PrepareData pd = new PrepareData(Cfg);
-            pd.PrepareOpusData();
+            //PrepareData pd = new PrepareData(Cfg);
+            //pd.PrepareOpusData();
+            RunNmt rn = new RunNmt(Cfg);
+            //rn.RunDemoTrain();
+            rn.RunDemoTest();
         }
 
 

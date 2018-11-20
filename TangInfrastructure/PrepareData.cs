@@ -30,13 +30,13 @@ namespace TangInfrastructure
 
         private void PrintData(string type, IEnumerable<Tuple<string,string>> list, bool createDict=false)
         {
-            string srcPath = Path.Combine(Cfg.WorkFolder, type + "." + Cfg.SrcLocale);
-            string tgtPath = Path.Combine(Cfg.WorkFolder, type + "." + Cfg.TgtLocale);
+            string srcPath = Path.Combine(Cfg.NmtModelWorkFolder, type + "." + Cfg.SrcLocale);
+            string tgtPath = Path.Combine(Cfg.NmtModelWorkFolder, type + "." + Cfg.TgtLocale);
             Common.WritePairFiles(srcPath, tgtPath, list.Select(x => CleanupPairs(x)));
             if (createDict)
             {
-                string srcDictPath = Path.Combine(Cfg.WorkFolder, "vocab." + Cfg.SrcLocale);
-                string tgtDictPath = Path.Combine(Cfg.WorkFolder, "vocab." + Cfg.TgtLocale);
+                string srcDictPath = Path.Combine(Cfg.NmtModelWorkFolder, "vocab." + Cfg.SrcLocale);
+                string tgtDictPath = Path.Combine(Cfg.NmtModelWorkFolder, "vocab." + Cfg.TgtLocale);
                 PrepareDict(srcPath, Cfg.SrcVocabSize, srcDictPath);
                 PrepareDict(tgtPath, Cfg.TgtVocabSize, tgtDictPath);
             }

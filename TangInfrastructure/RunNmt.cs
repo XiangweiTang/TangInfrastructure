@@ -14,11 +14,18 @@ namespace TangInfrastructure
             Cfg = cfg;
         }
 
-        public void RunDemo()
+        public void RunDemoTrain()
         {
             string fileName = Cfg.PythonPath;
-            string args = Cfg.NmtCommand;
+            string args = Cfg.TrainNmtCommand;
             Common.RunFile(fileName, args,Cfg.NmtFolder);
+        }
+
+        public void RunDemoTest()
+        {
+            string fileName = Cfg.PythonPath;
+            string args = Cfg.TestNmtCommand;
+            Common.RunFile(fileName, args, Cfg.NmtFolder);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace TangInfrastructure
     class Config
     {
         public string ParallelDataFolder { get; private set; } = @"D:\XiangweiTang\Data\OpusPair\";
-        public string WorkFolder { get; private set; } = @"D:\tmp\Custom_nmt_2013";
+        public string NmtModelWorkFolder { get; private set; } = @"D:\tmp\Custom_nmt_2013";
         public string SrcLocale { get; private set; } = "zh";
         public int SrcVocabSize { get; private set; } = 5000;
         public string TgtLocale { get; private set; } = "en";
@@ -24,7 +24,8 @@ namespace TangInfrastructure
         public string NmtFolder { get; private set; } = @"D:\XiangweiTang\Python\nmt";
         public int TrainSteps { get; private set; } = 12000;
         public IEnumerable<string> UsedData { get; private set; } = Common.ToCollection("OpenSubtitles2013");
-
+        public string TestInputPath { get; private set; } = @"D:\tmp\Custom_nmt_2013\test.zh";
+        public string TestOutputPath { get; private set; } = @"D:\tmp\Custom_nmt_2013\test_result.en";
 
         /*
          * python -m nmt.nmt --src=vi --tgt=en --vocab_prefix=D:\tmp\nmt_model\vocab  
@@ -34,9 +35,10 @@ namespace TangInfrastructure
          * --out_dir=D:\tmp\nmt_model 
          * --num_train_steps=12000 --steps_per_stats=100 --num_layers=2 --num_units=128 --dropout=0.2 --metrics=bleu
          */
-        public string NmtCommand => $"-m nmt.nmt --src={SrcLocale} --tgt={TgtLocale} --vocab_prefix={WorkFolder}\\vocab "
-            + $"--train_prefix={WorkFolder}\\train --dev_prefix={WorkFolder}\\dev --test_prefix={WorkFolder}\\test "
-            + $"--out_dir={WorkFolder} --num_train_steps={TrainSteps} --steps_per_stats=100 --num_layers=2 --num_units=128 --dropout=0.2 --metrics=bleu";
+        public string TrainNmtCommand => $"-m nmt.nmt --src={SrcLocale} --tgt={TgtLocale} --vocab_prefix={NmtModelWorkFolder}\\vocab "
+            + $"--train_prefix={NmtModelWorkFolder}\\train --dev_prefix={NmtModelWorkFolder}\\dev --test_prefix={NmtModelWorkFolder}\\test "
+            + $"--out_dir={NmtModelWorkFolder} --num_train_steps={TrainSteps} --steps_per_stats=100 --num_layers=2 --num_units=128 --dropout=0.2 --metrics=bleu";
+        public string TestNmtCommand => $"-m nmt.nmt --out_dir={NmtModelWorkFolder} --inference_input_file={TestInputPath} --inference_output_file={TestOutputPath}";
 
         XmlNode CommonNode;
         XmlNode TaskNode;
