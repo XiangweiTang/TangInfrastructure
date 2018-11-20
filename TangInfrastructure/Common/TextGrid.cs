@@ -105,6 +105,25 @@ namespace TangInfrastructure
             }
         }
 
+        private void TaggingBi()
+        {
+            foreach(TextGridItem tgi in ItemDict["BI"])
+            {
+                string text = tgi.Text;
+                string tagging = $"<BI{text}";
+                tgi.UpdateText(tagging);
+            }
+        }
+
+        private void TaggingcC()
+        {
+            foreach(TextGridItem tgi in ItemDict["CC"])
+            {
+                string text = tgi.Text;
+                //TODO
+            }
+        }
+
         public IEnumerable<string> MatchWords()
         {
             var dict = MatchInterval("CC", "SYL");
@@ -339,6 +358,11 @@ namespace TangInfrastructure
             Text = item.Text;
         }
 
+        public void UpdateText(string text)
+        {
+            Text = text;
+        }
+
         public virtual IEnumerable<string> ToTextGrid(string tabOffset)
         {
             yield return string.Empty;
@@ -398,7 +422,7 @@ namespace TangInfrastructure
 
         public string Value()
         {
-            return $"<{Name}{Text}>";
+            return Text;
         }
 
         public override IEnumerable<string> ToTextGrid(string tabOffset)
