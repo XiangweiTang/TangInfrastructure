@@ -46,6 +46,7 @@
     <Compile Include="Common\Common.cs" />
     <Compile Include="Common\Constants.cs" />
     <Compile Include="Common\Med.cs" />
+    <Compile Include="Common\Point.cs" />
     <Compile Include="Common\SplitData.cs" />
     <Compile Include="Common\TextGrid.cs" />
     <Compile Include="Common\Wave.cs" />

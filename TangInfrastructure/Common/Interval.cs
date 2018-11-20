@@ -35,5 +35,6 @@ namespace TangInfrastructure
     {
         double Start();
         double End();
+        string Value();
     }
 }
