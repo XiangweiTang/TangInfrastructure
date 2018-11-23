@@ -87,8 +87,10 @@ namespace TangInfrastructure
         public static void ExtractOpusToTc(string rootPath, string outputRootPath, bool overwrite)
         {
             foreach(string corpusFolder in Directory.EnumerateDirectories(rootPath))
-            {
+            {                
                 string corpusName = corpusFolder.Split('\\').Last();
+                if (corpusName != "OpenSubtitles2016")
+                    continue;
                 string xmlPath = Path.Combine(corpusFolder, "xml");
                 foreach(string localeFolder in Directory.EnumerateDirectories(xmlPath))
                 {

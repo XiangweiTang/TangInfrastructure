@@ -66,12 +66,12 @@ namespace TangInfrastructure
             var head = Common.ToCollection("<unk>", "<s>", "</s>");
             var tail = File.ReadLines(filePath).SelectMany(x => x.Split(' '))
                 .GroupBy(x => x)
-                .OrderByDescending(x => x.Count())
-                .Select(x => x.Key)
-                .Where(x => !string.IsNullOrWhiteSpace(x));
-            
-            var list = head.Concat(tail).Take(vocabSize);
-            File.WriteAllLines(outputPath, list);
+                .OrderByDescending(x => x.Count()).ToList();
+                //.Select(x => x.Key)
+                //.Where(x => !string.IsNullOrWhiteSpace(x));
+
+            //var list = head.Concat(tail).Take(vocabSize).ToList();
+            //File.WriteAllLines(outputPath, list);
         }
     }
 }

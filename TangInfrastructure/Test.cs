@@ -17,13 +17,13 @@ namespace TangInfrastructure
         Regex ValidReg = new Regex("^[a-zA-Z_]*$", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            //var list = Directory.EnumerateFiles(@"D:\XiangweiTang\Data\Bank\Cleanup").SelectMany(x => new TextGrid(x).CcList.Select(y => StringCleanup.RemoveTag(y.Text))).SelectMany(x => x.Where(y => y > '龟' || y < '一')).Distinct().ToList();
-            string inputPath = @"D:\XiangweiTang\Data\Bank\Raw";
-            string outputPath = @"D:\XiangweiTang\Data\Bank\Cleanup";
-            //Common.FolderTransport(inputPath, outputPath, RebuildTextGrid, "*.textgrid");
-            var list = Directory.EnumerateFiles(@"D:\XiangweiTang\Data\Bank\Cleanup")
-                .SelectMany(x => new TextGrid(x).SylList.Select(y => new { text = y.Text, id = x })).SelectMany(x => x.text.Split(' ').Select(y => new { path = x.id, value = y }))
-                .Where(x => x.value.Length == 1).ToList();
+            PrepareData pd = new PrepareData(Cfg);
+            //OpusProcessing.Decompress(@"D:\XiangweiTang\Data\OpusXml\OpenSubtitles2016\xml\en");
+            OpusProcessing.ExtractOpusToTc(@"D:\XiangweiTang\Data\OpusXml", @"D:\XiangweiTang\Data\OpusTxt", false);
+            
+            //pd.PrepareOpusData();
+            //RunNmt rn = new RunNmt(Cfg);
+            //rn.RunDemoTrain();
         }
 
         private bool RebuildTextGrid(string inputPath, string outputPath)

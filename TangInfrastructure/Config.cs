@@ -11,11 +11,11 @@ namespace TangInfrastructure
     class Config
     {
         public string ParallelDataFolder { get; private set; } = @"D:\XiangweiTang\Data\OpusPair\";
-        public string NmtModelWorkFolder { get; private set; } = @"D:\tmp\Custom_nmt_2013";
+        public string NmtModelWorkFolder { get; private set; } = @"D:\tmp\Custom_nmt_2013_new";
         public string SrcLocale { get; private set; } = "zh";
-        public int SrcVocabSize { get; private set; } = 5000;
+        public int SrcVocabSize { get; private set; } = 20000;
         public string TgtLocale { get; private set; } = "en";
-        public int TgtVocabSize { get; private set; } = 5000;
+        public int TgtVocabSize { get; private set; } = 20000;
         public string PythonPath { get; private set; } = @"C:\Users\tangx\AppData\Local\Programs\Python\Python36\python.exe";
         public string CmdPath { get; private set; } = string.Empty;
         public string PowerShellPath { get; private set; } = string.Empty;
