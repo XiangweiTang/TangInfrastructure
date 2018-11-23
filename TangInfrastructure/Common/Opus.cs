@@ -23,7 +23,7 @@ namespace TangInfrastructure
         public static void MatchPairFiles()
         {
             var list = Cfg.UsedCorpora.SelectMany(x => MatchPairFilesByCorpus(x));
-            var split = new SplitData<Tuple<string, string>>(list);
+            var split = new SplitData<Tuple<string, string>>(list, 5000, 5000);
 
             PrintData("dev", split.Dev);
             PrintData("test", split.Test);
