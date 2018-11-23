@@ -10,90 +10,6 @@ namespace TangInfrastructure
 {
     abstract class Line
     {
-        public string SessionId { get; protected set; } = string.Empty;
-        public string FileName { get; protected set; } = string.Empty;
-        public string Text { get; protected set; } = string.Empty;
-        public Line(string line)
-        {
-            Set(line);
-        }
-        public void UpdateText(string newText)
-        {
-            Text = newText;
-        }
-        public string Output => string.Join("\t", Get());
-        abstract protected void Set(string line);
-        abstract protected IEnumerable<object> Get();
-    }
-    class TcLine : Line
-    {
-        public double StartTime { get; protected set; } = 0;
-        public double EndTime { get; protected set; } = 0;
-        public double Duration { get; protected set; } = 0;
-        public string SrcAudioPath { get; protected set; } = string.Empty;
-        public TcLine(string line) : base(line)
-        {
-
-        }
-
-        protected override IEnumerable<object> Get()
-        {
-            yield return FileName;
-            yield return SessionId;
-            yield return StartTime;
-            yield return EndTime;
-            yield return Text;
-            yield return SrcAudioPath;
-        }
-
-        protected override void Set(string line)
-        {
-            var split = line.Split('\t');
-            Sanity.Requires(split.Length == 7, "Invalid TcLine.\t" + line);
-            FileName = split[0];
-            SessionId = split[1];
-            StartTime = double.Parse(split[2]);
-            EndTime = double.Parse(split[3]);
-            Text = split[4];
-            SrcAudioPath = split[5];
-            Duration = EndTime - StartTime;
-        }
-    }
-
-    class PhonLine : TcLine
-    {
-        public PhonLine(string line) : base(line) { }
-        public int SentenceId { get; private set; } = 0;
-        public string Word { get; private set; } = string.Empty;
-        protected override IEnumerable<object> Get()
-        {
-            yield return FileName;
-            yield return SessionId;
-            yield return SentenceId;
-            yield return Word;
-            yield return Text;
-            yield return StartTime;
-            yield return Duration;
-            yield return SrcAudioPath;
-        }
-
-        protected override void Set(string line)
-        {
-            var split = line.Split('\t');
-            Sanity.Requires(split.Length == 8);
-            FileName = split[0];
-            SessionId = split[1];
-            SentenceId = int.Parse(split[2]);
-            Word = split[3];
-            Text = split[4];
-            StartTime = double.Parse(split[5]);
-            Duration = double.Parse(split[6]);
-            SrcAudioPath = split[7];
-        }
-    }
-
-    abstract class NewLine
-    {
 
         public string CorpusName { get; protected set; } = string.Empty;
         public string SpeakerId { get; protected set; } = "U";
@@ -101,14 +17,14 @@ namespace TangInfrastructure
         public string InternalId { get; protected set; } = string.Empty;
         public string Transcription { get; protected set; } = string.Empty;
 
-        public NewLine() { }
+        public Line() { }
 
-        public NewLine(string line)
+        public Line(string line)
         {
             Set(line);
         }
 
-        public NewLine(string corpusName, string sessionId, string speakerId, string internalId, string transcription)
+        public Line(string corpusName, string sessionId, string speakerId, string internalId, string transcription)
         {
             CorpusName = corpusName;
             SessionId = sessionId;
@@ -117,7 +33,7 @@ namespace TangInfrastructure
             Transcription = transcription;
         }
 
-        public NewLine(NewLine line)
+        public Line(Line line)
         {
             CorpusName = line.CorpusName;
             SessionId = line.SessionId;
@@ -126,7 +42,7 @@ namespace TangInfrastructure
             Transcription = line.Transcription;
         }
 
-        public NewLine(string internalId, bool unified = true, params NewLine[] lines)
+        public Line(string internalId, bool unified = true, params Line[] lines)
         {
             Sanity.Requires(lines.Length > 0, "Merge lines requires at least one line(s).");
             CorpusName = lines[0].CorpusName;
@@ -152,21 +68,21 @@ namespace TangInfrastructure
         abstract protected IEnumerable<object> Get();
     }
 
-    class NewTcLine : NewLine
+    class TcLine : Line
     {
         public double StartTime { get; protected set; } = 0;
         public double EndTime { get; protected set; } = 0;
         public double Duration => EndTime - StartTime;
         public string SrcAudioPath { get; protected set; } = string.Empty;
 
-        public NewTcLine() : base() { }
+        public TcLine() : base() { }
 
-        public NewTcLine(string line) : base(line)
+        public TcLine(string line) : base(line)
         {
 
         }
 
-        public NewTcLine(string corpusName, string speakerId, string sessionId, string internalId, double startTime, double endTime, string transcription, string srcAudioPath)
+        public TcLine(string corpusName, string speakerId, string sessionId, string internalId, double startTime, double endTime, string transcription, string srcAudioPath)
             : base(corpusName, sessionId, speakerId, internalId, transcription)
         {
             StartTime = startTime;
@@ -174,7 +90,7 @@ namespace TangInfrastructure
             SrcAudioPath = srcAudioPath;
         }
 
-        public NewTcLine(string corpusName, string speakerId, string sessionId, string internalId, string startTime, string endTime, string transcription, string srcAudioPath)
+        public TcLine(string corpusName, string speakerId, string sessionId, string internalId, string startTime, string endTime, string transcription, string srcAudioPath)
             : base(corpusName, sessionId, speakerId, internalId, transcription)
         {
             StartTime = double.Parse(startTime);
@@ -182,7 +98,7 @@ namespace TangInfrastructure
             SrcAudioPath = srcAudioPath;
         }
 
-        public NewTcLine(string internalId, bool unified = true,params NewTcLine[] lines) : base(internalId, unified, lines)
+        public TcLine(string internalId, bool unified = true,params TcLine[] lines) : base(internalId, unified, lines)
         {
             StartTime = lines[0].StartTime;
             EndTime = lines.Last().EndTime;
@@ -226,7 +142,7 @@ namespace TangInfrastructure
         }
     }
 
-    class OpusLine : NewTcLine
+    class OpusLine : TcLine
     {
         public string Locale { get; private set; } = string.Empty;
         public OpusLine(string line) : base(line) { }

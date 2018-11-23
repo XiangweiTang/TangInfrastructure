@@ -250,7 +250,7 @@ namespace TangInfrastructure
             return second;
         }
 
-        public static IEnumerable<NewTcLine> ResetTimeStamp(IEnumerable<NewTcLine> list)
+        public static IEnumerable<TcLine> ResetTimeStamp(IEnumerable<TcLine> list)
         {
             double lastEnd = 0;           
             foreach(var line in list)
@@ -264,13 +264,13 @@ namespace TangInfrastructure
             }
         }
         
-        public static IEnumerable<NewLine> GetLines(string path, string type)
+        public static IEnumerable<Line> GetLines(string path, string type)
         {
             var list = File.ReadLines(path);
             switch (type.ToLower())
             {
                 case "tc":
-                    return list.Select(x => new NewTcLine(x));
+                    return list.Select(x => new TcLine(x));
                 case "opus":
                     return list.Select(x => new OpusLine(x));
                 default:
@@ -297,8 +297,13 @@ namespace TangInfrastructure
         public static Dictionary<char, char> BigToGbkDict = new Dictionary<char, char>();
         private static void SetDict()
         {
-            BigToGbkDict = Common.ReadEmbed($"{Constants.PROJECT_NAME}.Data.GBK_BIG.txt")
+            BigToGbkDict = ReadEmbed($"{Constants.PROJECT_NAME}.Data.GBK_BIG.txt")
                  .ToDictionary(x => x[2], x => x[0]);
         }
+
+        public static Func<string, bool> ValidEmpty = x =>
+         {
+             return !string.IsNullOrWhiteSpace(x);
+         };
     }
 }
