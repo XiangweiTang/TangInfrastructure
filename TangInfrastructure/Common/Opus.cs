@@ -22,7 +22,7 @@ namespace TangInfrastructure
 
         public static void MatchPairFiles()
         {
-            var list = Cfg.UsedCorpora.SelectMany(x => MatchPairFiles(x));
+            var list = Cfg.UsedCorpora.SelectMany(x => MatchPairFilesByCorpus(x));
             var split = new SplitData<Tuple<string, string>>(list);
 
             PrintData("dev", split.Dev);
@@ -57,23 +57,18 @@ namespace TangInfrastructure
             File.WriteAllLines(outputPath, list);
         }
 
-        private static IEnumerable<Tuple<string,string>> MatchPairFiles(string corpus)
+        private static IEnumerable<Tuple<string,string>> MatchPairFilesByCorpus(string corpus)
         {
-            var fileList = Directory.EnumerateFiles(Path.Combine(Cfg.DataRootFolder, corpus, "Tc", "en"), "*.txt", SearchOption.AllDirectories);
-            return fileList.SelectMany(x => MatchPairFiles(x, corpus));
+            string matchPath = Path.Combine(Cfg.DataRootFolder, corpus, Cfg.MatchFileName);
+            return File.ReadLines(matchPath).SelectMany(x => MatchPairFiles(x));
         }
-        private static IEnumerable<Tuple<string,string>> MatchPairFiles(string srcFilePath, string corpus)
+        private static IEnumerable<Tuple<string,string>> MatchPairFiles(string pathLine)
         {
-            var srcList = File.ReadLines(srcFilePath).Select(x => new TcLine(x).Transcription).Select(CleanupEnuString);
-            string tgtFilePath = GetPairFile(srcFilePath, corpus);
+            string srcFilePath = pathLine.Split('\t')[1];
+            string tgtFilePath = pathLine.Split('\t')[3];
+            var srcList = File.ReadLines(srcFilePath).Select(x => new TcLine(x).Transcription).Select(CleanupEnuString);            
             var tgtList = File.ReadLines(tgtFilePath).Select(x => new TcLine(x).Transcription).Select(CleanupChsString);
             return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y));
-        }
-        private static string GetPairFile(string srcFilePath, string corpus)
-        {
-            string fileName = srcFilePath.Split('\\').Last();
-            string sessionId = new TcLine(File.ReadLines(srcFilePath).First()).SessionId;
-            return Path.Combine(Cfg.DataRootFolder, corpus, "Tc", Cfg.TgtLocale, sessionId, fileName);
         }
         #endregion
 
@@ -112,8 +107,8 @@ namespace TangInfrastructure
         {
             foreach(string corpus in Cfg.UsedCorpora)
             {
-                string matchingPath = Path.Combine(Cfg.DataRootFolder, corpus, "matching.txt");
-                string matchXmlPath = Directory.EnumerateFiles(Path.Combine(Cfg.DataRootFolder, corpus), "*.xml").Single();
+                string matchingPath = Path.Combine(Cfg.DataRootFolder, corpus, Cfg.MatchFileName);
+                string matchXmlPath = Directory.EnumerateFiles(Path.Combine(Cfg.DataRootFolder, corpus, "xml"), "*.xml").Single();
                 XmlDocument xDoc = new XmlDocument();
                 xDoc.Load(matchXmlPath);
                 var nodes = xDoc.SelectNodes("cesAlign/linkGrp").Cast<XmlNode>();
@@ -121,6 +116,8 @@ namespace TangInfrastructure
                 Parallel.ForEach(nodes, new ParallelOptions { MaxDegreeOfParallelism = 10 }, grpNode =>
                  {
                      string s = MatchSingleGrp(corpus, grpNode);
+                     if (!string.IsNullOrWhiteSpace(s))
+                         list.Add(s);
                  });
 
                 File.WriteAllLines(matchingPath, list);
@@ -131,11 +128,15 @@ namespace TangInfrastructure
         {
             string fromDocSubPath = grpNode.Attributes["fromDoc"].Value;
             string fromXmlPath = Path.Combine(Cfg.DataRootFolder, corpus, "xml", fromDocSubPath).ToLower().Replace(".gz", string.Empty);
+            string fromDocFileName = fromDocSubPath.Split('/').Last().Split('.')[0];
+
             int startIndex = fromDocSubPath.IndexOf('/');
             int endIndex = fromDocSubPath.LastIndexOf('/');
             string sessionId = fromDocSubPath.Substring(startIndex, endIndex - startIndex).Trim('/');
+
             string toDocSubPath = grpNode.Attributes["toDoc"].Value;
             string toXmlPath = Path.Combine(Cfg.DataRootFolder, corpus, "xml", toDocSubPath).ToLower().Replace(".gz", string.Empty);
+            string toDocFileName = toDocSubPath.Split('/').Last().Split('.')[0];
 
             string fromTcFolder = Path.Combine(Cfg.DataRootFolder, corpus, "Tc", Cfg.SrcLocale, sessionId);
             string toTcFolder = Path.Combine(Cfg.DataRootFolder, corpus, "Tc", Cfg.TgtLocale, sessionId);
@@ -144,21 +145,26 @@ namespace TangInfrastructure
 
             Console.WriteLine("Processing " + corpus + " " + sessionId);
 
-            string fileName = Guid.NewGuid().ToString();
 
-            string fromTcPath = Path.Combine(fromTcFolder, fileName + ".txt");
-            string toTcPath = Path.Combine(toTcFolder, fileName + ".txt");
+            string fromTcPath = Path.Combine(fromTcFolder, fromDocFileName + ".txt");
+            string toTcPath = Path.Combine(toTcFolder, toDocFileName + ".txt");
+            try
+            {
+                var nodes = grpNode.SelectNodes("link");
+                XmlDocument fromDoc = new XmlDocument();
+                fromDoc.Load(fromXmlPath);
+                XmlDocument toDoc = new XmlDocument();
+                toDoc.Load(toXmlPath);
 
-            var nodes = grpNode.SelectNodes("link");
-            XmlDocument fromDoc = new XmlDocument();
-            fromDoc.Load(fromXmlPath);
-            XmlDocument toDoc = new XmlDocument();
-            toDoc.Load(toXmlPath);
+                var list = MatchSingleGrp(nodes, fromDoc, toDoc, corpus, sessionId);
+                Common.WritePairFiles(fromTcPath, toTcPath, list);
 
-            var list = MatchSingleGrp(nodes, fromDoc, toDoc, corpus, sessionId);
-            Common.WritePairFiles(fromTcPath, toTcPath, list);
-
-            return string.Join("\t", fromXmlPath, fromTcPath, toXmlPath, toTcPath);
+                return string.Join("\t", fromXmlPath, fromTcPath, toXmlPath, toTcPath);
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
 
         private static IEnumerable<Tuple<string,string>> MatchSingleGrp(XmlNodeList nodes, XmlDocument fromDoc, XmlDocument toDoc, string corpus, string sessionId)
