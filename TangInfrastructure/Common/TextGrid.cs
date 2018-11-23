@@ -131,7 +131,7 @@ namespace TangInfrastructure
         {
             foreach(TextGridItem tgi in ItemDict["SYL"])
             {
-                string text = StringCleanup.Tagging(tgi.Text);
+                string text = StringCleanup.TaggingXSil(tgi.Text);
                 string cleanText = StringCleanup.CleanupSyl(text);
                 tgi.UpdateText(cleanText);
             }

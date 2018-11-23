@@ -17,7 +17,7 @@ namespace TangInfrastructure
 
         public void PrepareOpusData()
         {
-            var parallelData = Cfg.UsedData
+            var parallelData = Cfg.UsedCorpora
                 .SelectMany(x => GetPairFile(Path.Combine(Cfg.ParallelDataFolder, x))).SelectMany(x => x);
             SplitData<Tuple<string, string>> sd = new SplitData<Tuple<string, string>>(parallelData);
             var dev = sd.Dev;
