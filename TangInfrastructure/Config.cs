@@ -17,13 +17,14 @@ namespace TangInfrastructure
         public int SrcVocabSize { get; private set; } = 20000;
         public string TgtLocale { get; private set; } = "zh";
         public int TgtVocabSize { get; private set; } = 20000;
+        public bool ReverseOnTrain { get; private set; } = true;
         public string PythonPath { get; private set; } = @"C:\Users\tangx\AppData\Local\Programs\Python\Python36\python.exe";
         public string CmdPath { get; private set; } = string.Empty;
         public string PowerShellPath { get; private set; } = string.Empty;
         public string TaskName { get; private set; } = string.Empty;
         public string SoxPath { get; private set; } = @"C:\Program Files (x86)\sox-14-4-2\sox.exe";
         public string NmtFolder { get; private set; } = @"D:\XiangweiTang\Python\nmt";
-        public int TrainSteps { get; private set; } = 12000;
+        public int TrainSteps { get; private set; } = 20000;
         public IEnumerable<string> UsedCorpora { get; private set; } = Common.ToCollection("OpenSubtitles", "OpenSubtitles2013", "OpenSubtitles2016");
         public string TestInputPath { get; private set; } = @"D:\tmp\Custom_nmt_2013\test.zh";
         public string TestOutputPath { get; private set; } = @"D:\tmp\Custom_nmt_2013\test_result.en";
@@ -37,7 +38,9 @@ namespace TangInfrastructure
          * --out_dir=D:\tmp\nmt_model 
          * --num_train_steps=12000 --steps_per_stats=100 --num_layers=2 --num_units=128 --dropout=0.2 --metrics=bleu
          */
-        public string TrainNmtCommand => $"-m nmt.nmt --src={SrcLocale} --tgt={TgtLocale} --vocab_prefix={NmtModelWorkFolder}\\vocab "
+        private string TrainSrc => ReverseOnTrain ? TgtLocale : SrcLocale;
+        private string TrainTgt => ReverseOnTrain ? SrcLocale : TgtLocale;
+        public string TrainNmtCommand => $"-m nmt.nmt --src={TrainSrc} --tgt={TrainTgt} --vocab_prefix={NmtModelWorkFolder}\\vocab "
             + $"--train_prefix={NmtModelWorkFolder}\\train --dev_prefix={NmtModelWorkFolder}\\dev --test_prefix={NmtModelWorkFolder}\\test "
             + $"--out_dir={NmtModelWorkFolder} --num_train_steps={TrainSteps} --steps_per_stats=100 --num_layers=2 --num_units=128 --dropout=0.2 --metrics=bleu";
         public string TestNmtCommand => $"-m nmt.nmt --out_dir={NmtModelWorkFolder} --inference_input_file={TestInputPath} --inference_output_file={TestOutputPath}";

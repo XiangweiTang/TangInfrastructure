@@ -17,10 +17,12 @@ namespace TangInfrastructure
         Regex ValidReg = new Regex("^[a-zA-Z_]*$", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            Opus o = new Opus(Cfg);
+            //Opus o = new Opus(Cfg);
             //Opus.DecompressXmls();
             //Opus.XmlToTc();
-            Opus.MatchPairFiles();
+            //Opus.MatchPairFiles();
+            RunNmt rn = new RunNmt(Cfg);
+            rn.RunDemoTrain();
         }
 
         private bool RebuildTextGrid(string inputPath, string outputPath)
