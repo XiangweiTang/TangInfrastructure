@@ -17,13 +17,10 @@ namespace TangInfrastructure
         Regex ValidReg = new Regex("^[a-zA-Z_]*$", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            PrepareData pd = new PrepareData(Cfg);
-            //OpusProcessing.Decompress(@"D:\XiangweiTang\Data\OpusXml\OpenSubtitles2016\xml\en");
-            OpusProcessing.ExtractOpusToTc(@"D:\XiangweiTang\Data\OpusXml", @"D:\XiangweiTang\Data\OpusTxt", false);
-            
-            //pd.PrepareOpusData();
-            //RunNmt rn = new RunNmt(Cfg);
-            //rn.RunDemoTrain();
+            Opus o = new Opus(Cfg);
+            //Opus.DecompressXmls();
+            //Opus.XmlToTc();
+            Opus.MatchPairFiles();
         }
 
         private bool RebuildTextGrid(string inputPath, string outputPath)

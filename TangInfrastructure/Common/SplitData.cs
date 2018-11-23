@@ -21,8 +21,8 @@ namespace TangInfrastructure
         {
             var shuffle = inputCollection.Shuffle();
             int n = shuffle.Length;
-            int devCount = Convert.ToInt32(n * 0.05);
-            int testCount = Convert.ToInt32(n * 0.05);
+            int devCount = Convert.ToInt32(n * 0.02);
+            int testCount = Convert.ToInt32(n * 0.02);
             Split(shuffle, devCount, testCount);
         }
 
