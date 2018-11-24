@@ -14,11 +14,11 @@ namespace TangInfrastructure
         public Opus(Config cfg)
         {
             Cfg = cfg;
-        }
+        }        
 
 
         #region Match pairs and split.
-        
+
 
         public static void MatchPairFiles()
         {
@@ -59,7 +59,7 @@ namespace TangInfrastructure
 
         private static IEnumerable<Tuple<string,string>> MatchPairFilesByCorpus(string corpus)
         {
-            string matchPath = Path.Combine(Cfg.DataRootFolder, corpus, Cfg.MatchFileName);
+            string matchPath = Path.Combine(Cfg.OpusDataRootFolder, corpus, Cfg.MatchFileName);
             return File.ReadLines(matchPath).SelectMany(x => MatchPairFiles(x));
         }
         private static IEnumerable<Tuple<string,string>> MatchPairFiles(string pathLine)
@@ -107,8 +107,8 @@ namespace TangInfrastructure
         {
             foreach(string corpus in Cfg.UsedCorpora)
             {
-                string matchingPath = Path.Combine(Cfg.DataRootFolder, corpus, Cfg.MatchFileName);
-                string matchXmlPath = Directory.EnumerateFiles(Path.Combine(Cfg.DataRootFolder, corpus, "xml"), "*.xml").Single();
+                string matchingPath = Path.Combine(Cfg.OpusDataRootFolder, corpus, Cfg.MatchFileName);
+                string matchXmlPath = Directory.EnumerateFiles(Path.Combine(Cfg.OpusDataRootFolder, corpus, "xml"), "*.xml").Single();
                 XmlDocument xDoc = new XmlDocument();
                 xDoc.Load(matchXmlPath);
                 var nodes = xDoc.SelectNodes("cesAlign/linkGrp").Cast<XmlNode>();
@@ -127,7 +127,7 @@ namespace TangInfrastructure
         private static string MatchSingleGrp(string corpus, XmlNode grpNode)
         {
             string fromDocSubPath = grpNode.Attributes["fromDoc"].Value;
-            string fromXmlPath = Path.Combine(Cfg.DataRootFolder, corpus, "xml", fromDocSubPath).ToLower().Replace(".gz", string.Empty);
+            string fromXmlPath = Path.Combine(Cfg.OpusDataRootFolder, corpus, "xml", fromDocSubPath).ToLower().Replace(".gz", string.Empty);
             string fromDocFileName = fromDocSubPath.Split('/').Last().Split('.')[0];
 
             int startIndex = fromDocSubPath.IndexOf('/');
@@ -135,11 +135,11 @@ namespace TangInfrastructure
             string sessionId = fromDocSubPath.Substring(startIndex, endIndex - startIndex).Trim('/');
 
             string toDocSubPath = grpNode.Attributes["toDoc"].Value;
-            string toXmlPath = Path.Combine(Cfg.DataRootFolder, corpus, "xml", toDocSubPath).ToLower().Replace(".gz", string.Empty);
+            string toXmlPath = Path.Combine(Cfg.OpusDataRootFolder, corpus, "xml", toDocSubPath).ToLower().Replace(".gz", string.Empty);
             string toDocFileName = toDocSubPath.Split('/').Last().Split('.')[0];
 
-            string fromTcFolder = Path.Combine(Cfg.DataRootFolder, corpus, "Tc", Cfg.SrcLocale, sessionId);
-            string toTcFolder = Path.Combine(Cfg.DataRootFolder, corpus, "Tc", Cfg.TgtLocale, sessionId);
+            string fromTcFolder = Path.Combine(Cfg.OpusDataRootFolder, corpus, "Tc", Cfg.SrcLocale, sessionId);
+            string toTcFolder = Path.Combine(Cfg.OpusDataRootFolder, corpus, "Tc", Cfg.TgtLocale, sessionId);
             Directory.CreateDirectory(fromTcFolder);
             Directory.CreateDirectory(toTcFolder);
 
@@ -231,7 +231,7 @@ namespace TangInfrastructure
             var usedCorpora = userSetUsedCorpora.Length == 0 ? Cfg.UsedCorpora : userSetUsedCorpora;
             foreach(string usedCorpus in usedCorpora)
             {
-                string corpusPath = Path.Combine(Cfg.DataRootFolder, usedCorpus, "xml");
+                string corpusPath = Path.Combine(Cfg.OpusDataRootFolder, usedCorpus, "xml");
                 Parallel.ForEach(Directory.EnumerateFiles(corpusPath, "*.gz", SearchOption.AllDirectories), new ParallelOptions { MaxDegreeOfParallelism = 10 }, inputGzPath =>
                    {
                        DecompressXml(inputGzPath);

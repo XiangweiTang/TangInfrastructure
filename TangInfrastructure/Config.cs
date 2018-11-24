@@ -10,7 +10,7 @@ namespace TangInfrastructure
 {
     class Config
     {
-        public string DataRootFolder { get; private set; } = @"D:\XiangweiTang\Data\Opus";
+        public string OpusDataRootFolder { get; private set; } = @"D:\XiangweiTang\Data\Opus";
         public string ParallelDataFolder { get; private set; } = @"D:\XiangweiTang\Data\OpusPair\";
         public string NmtModelWorkFolder { get; private set; } = @"D:\tmp\Model";
         public string SrcLocale { get; private set; } = "en";
@@ -19,15 +19,13 @@ namespace TangInfrastructure
         public int TgtVocabSize { get; private set; } = 20000;
         public string PythonPath { get; private set; } = @"C:\Users\tangx\AppData\Local\Programs\Python\Python36\python.exe";
         public string CmdPath { get; private set; } = string.Empty;
-        public string PowerShellPath { get; private set; } = string.Empty;
-        public string TaskName { get; private set; } = string.Empty;
+        public string PowerShellPath { get; private set; } = string.Empty;        
         public string SoxPath { get; private set; } = @"C:\Program Files (x86)\sox-14-4-2\sox.exe";
         public string NmtFolder { get; private set; } = @"D:\XiangweiTang\Python\nmt";
         public int TrainSteps { get; private set; } = 12000;
         public IEnumerable<string> UsedCorpora { get; private set; } = Common.ToCollection("OpenSubtitles", "OpenSubtitles2013", "OpenSubtitles2016");
         public string TestInputPath { get; private set; } = @"D:\tmp\Custom_nmt_2013\test.zh";
         public string TestOutputPath { get; private set; } = @"D:\tmp\Custom_nmt_2013\test_result.en";
-        public string MatchFileName => "matching.txt";
 
         /*
          * python -m nmt.nmt --src=vi --tgt=en --vocab_prefix=D:\tmp\nmt_model\vocab  
@@ -41,9 +39,9 @@ namespace TangInfrastructure
             + $"--train_prefix={NmtModelWorkFolder}\\train --dev_prefix={NmtModelWorkFolder}\\dev --test_prefix={NmtModelWorkFolder}\\test "
             + $"--out_dir={NmtModelWorkFolder} --num_train_steps={TrainSteps} --steps_per_stats=100 --num_layers=2 --num_units=128 --dropout=0.2 --metrics=bleu";
         public string TestNmtCommand => $"-m nmt.nmt --out_dir={NmtModelWorkFolder} --inference_input_file={TestInputPath} --inference_output_file={TestOutputPath}";
+        public string MatchFileName => "matching.txt";
 
         XmlNode CommonNode;
-        XmlNode TaskNode;
         XmlDocument XDoc = new XmlDocument();
 
         public Config() { }
@@ -53,11 +51,8 @@ namespace TangInfrastructure
             using (XmlReader xReader = XmlReader.Create(configPath, settings))
             {
                 XDoc.Load(xReader);
-                TaskName = XDoc.GetXmlAttribute("Root", "TaskName");
-                TaskNode = XDoc["Root"][TaskName];
                 CommonNode = XDoc["Root"]["Common"];
                 LoadCommonNode();
-                LoadTaskNode();
             }            
         }
 
@@ -67,7 +62,5 @@ namespace TangInfrastructure
             PowerShellPath = CommonNode.GetXmlAttribute("PowerShell", "Path");
             CmdPath = CommonNode.GetXmlAttribute("Cmd", "Path");
         }
-
-        protected virtual void LoadTaskNode() { }
     }
 }
