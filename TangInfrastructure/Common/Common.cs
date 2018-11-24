@@ -16,6 +16,10 @@ namespace TangInfrastructure
     {
         static char[] Sep = { ' ', '/' };
         public static Random R = new Random();
+        static Common()
+        {
+            SetDict();
+        }
         public static byte[] ReadBytes(string path, int n)
         {
             using(FileStream fs=new FileStream(path, FileMode.Open, FileAccess.Read))
@@ -80,6 +84,19 @@ namespace TangInfrastructure
             return client.DownloadString(uri);
         }
 
+        public static void WritePairFiles(string outputPath1, string outputPath2, IEnumerable<Tuple<string, string>> outputPairList)
+        {
+            StreamWriter sw1 = new StreamWriter(outputPath1);
+            StreamWriter sw2 = new StreamWriter(outputPath2);
+            foreach(var pair in outputPairList)
+            {
+                sw1.WriteLine(pair.Item1);
+                sw2.WriteLine(pair.Item2);
+            }
+            sw1.Close();
+            sw2.Close();
+        }
+
         public static void DownloadFile(string uri, string path)
         {
             WebClient client = new WebClient();
@@ -112,6 +129,15 @@ namespace TangInfrastructure
             skip = Math.Min(inputArray.Length, skip);
             T[] array = new T[inputArray.Length - skip];
             Array.Copy(inputArray, skip, array, 0, inputArray.Length - skip);
+            return array;
+        }
+
+        public static T[] ArrayRange<T>(this T[] inputArray, int skip, int take)
+        {
+            skip = Math.Min(inputArray.Length, skip);
+            take = Math.Min(take, Math.Max(inputArray.Length - skip, 0));
+            T[] array = new T[take];
+            Array.Copy(inputArray, skip, array, 0, take);
             return array;
         }
 
@@ -177,19 +203,107 @@ namespace TangInfrastructure
 
         public static void Decompress(string inputFilepath, string outputFilePath)
         {
-            if (File.Exists(outputFilePath))
-                return;
-            FileInfo inputFile = new FileInfo(inputFilepath);
-            using(FileStream inputFs = inputFile.OpenRead())
+            bool exceptionFlag = false;
+            try
             {
-                using(FileStream outputFs = File.Create(outputFilePath))
+                if (File.Exists(outputFilePath))
+                    File.Delete(outputFilePath);
+                FileInfo inputFile = new FileInfo(inputFilepath);
+                using (FileStream inputFs = inputFile.OpenRead())
                 {
-                    using(GZipStream decompressStream=new GZipStream(inputFs, CompressionMode.Decompress))
+                    using (FileStream outputFs = File.Create(outputFilePath))
                     {
-                        decompressStream.CopyTo(outputFs);                        
+                        using (GZipStream decompressStream = new GZipStream(inputFs, CompressionMode.Decompress))
+                        {
+                            decompressStream.CopyTo(outputFs);
+                        }
                     }
                 }
             }
+            catch
+            {
+                exceptionFlag = true;
+            }
+            finally
+            {
+                Console.WriteLine(outputFilePath + "\tDecompressed.");
+                if (File.Exists(outputFilePath) && exceptionFlag)
+                    File.Delete(outputFilePath);
+            }
         }
+
+        public static double TimeStrToSec(string timeStr)
+        {
+            var split = timeStr.Split(':');
+            string secStr = split.Last().Replace(',', '.');
+            double second = double.Parse(secStr);
+            if(split.Length>1)
+            {
+                string minStr = split[split.Length - 2];
+                second += 60 * int.Parse(minStr);
+            }
+            if (split.Length > 2)
+            {
+                string hrStr = split[split.Length - 3];
+                second += 3600 * int.Parse(hrStr);
+            }
+            return second;
+        }
+
+        public static IEnumerable<TcLine> ResetTimeStamp(IEnumerable<TcLine> list)
+        {
+            double lastEnd = 0;           
+            foreach(var line in list)
+            {
+                if (line.StartTime < lastEnd)
+                {
+                    line.SetStartTime(lastEnd);
+                    lastEnd = line.EndTime;
+                }
+                yield return line;
+            }
+        }
+        
+        public static IEnumerable<Line> GetLines(string path, string type)
+        {
+            var list = File.ReadLines(path);
+            switch (type.ToLower())
+            {
+                case "tc":
+                    return list.Select(x => new TcLine(x));
+                case "opus":
+                    return list.Select(x => new OpusLine(x));
+                default:
+                    throw new TangInfrastructureException("Invalid line type " + type);
+            }
+        }
+
+        public static IEnumerable<T> ToCollection<T>(params T[] items)
+        {
+            return items;
+        }
+
+        public static void FolderTransport(string inputFolderPath, string outputFolderPath, Func<string,string,bool> fileTransport, string pattern="*")
+        {
+            Parallel.ForEach(Directory.EnumerateFiles(inputFolderPath, pattern), new ParallelOptions { MaxDegreeOfParallelism = 10 }, inputFilePath =>
+            {
+                Console.WriteLine("Processing " + inputFilePath);
+                string fileName = inputFilePath.Split('\\').Last();
+                string outputFilePath = Path.Combine(outputFolderPath, fileName);
+                fileTransport(inputFilePath, outputFilePath);
+            });
+        }
+
+        public static Dictionary<char, char> BigToGbkDict = new Dictionary<char, char>();
+        private static void SetDict()
+        {
+            BigToGbkDict = ReadEmbed($"{Constants.PROJECT_NAME}.Data.GBK_BIG.txt")
+                 .ToDictionary(x => x[2], x => x[0]);
+        }
+
+        public static Func<string, bool> ValidEmpty = x =>
+         {
+             return !string.IsNullOrWhiteSpace(x);
+         };
     }
 }
