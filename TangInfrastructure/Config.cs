@@ -12,7 +12,7 @@ namespace TangInfrastructure
     {
         public string DataRootFolder { get; private set; } = @"D:\XiangweiTang\Data\Opus";
         public string ParallelDataFolder { get; private set; } = @"D:\XiangweiTang\Data\OpusPair\";
-        public string NmtModelWorkFolder { get; private set; } = @"D:\tmp\Model";
+        public string NmtModelWorkFolder { get; private set; } = @"D:\tmp\Model_NoEnu";
         public string SrcLocale { get; private set; } = "en";
         public int SrcVocabSize { get; private set; } = 20000;
         public string TgtLocale { get; private set; } = "zh";
@@ -24,8 +24,8 @@ namespace TangInfrastructure
         public string TaskName { get; private set; } = string.Empty;
         public string SoxPath { get; private set; } = @"C:\Program Files (x86)\sox-14-4-2\sox.exe";
         public string NmtFolder { get; private set; } = @"D:\XiangweiTang\Python\nmt";
-        public int TrainSteps { get; private set; } = 20000;
-        public IEnumerable<string> UsedCorpora { get; private set; } = Common.ToCollection("OpenSubtitles", "OpenSubtitles2013", "OpenSubtitles2016");
+        public int TrainSteps { get; private set; } = 12000;
+        public IEnumerable<string> UsedCorpora { get; private set; } = Common.ToCollection("OpenSubtitles2018", "OpenSubtitles", "OpenSubtitles2011", "OpenSubtitles2013", "OpenSubtitles2016");
         public string TestInputPath { get; private set; } = @"D:\tmp\Custom_nmt_2013\test.zh";
         public string TestOutputPath { get; private set; } = @"D:\tmp\Custom_nmt_2013\test_result.en";
         public string MatchFileName => "matching.txt";
