@@ -78,33 +78,33 @@ namespace TangInfrastructure
          {
              string charValid = new string(x.ToLower().Where(ValidChs).ToArray());
              //string queExValid = StringCleanup.CleanupQueEx(charValid);
-             string spaceValid = StringCleanup.CleanupSpace(charValid);
-             string gbk = StringCleanup.BigToGbk(spaceValid);
+             string spaceValid = StringProcess.CleanupSpace(charValid);
+             string gbk = StringProcess.BigToGbk(spaceValid);
              return gbk;
          };
 
         private static Func<char, bool> ValidChs = x =>
          {
-             return StringCleanup.ValidChsOnly(x) || StringCleanup.ValidLowerEnuOnly(x) || StringCleanup.ValidNumOnly(x) || x == ' ';
+             return StringProcess.ValidChsOnly(x) || StringProcess.ValidLowerEnuOnly(x) || StringProcess.ValidNumOnly(x) || x == ' ';
          };
 
         private static Func<string, string> CleanupEnuString = x =>
            {
-               string aposValid = StringCleanup.CleanupApos(x.ToLower());
+               string aposValid = StringProcess.CleanupApos(x.ToLower());
                string charValid = new string(aposValid.Where(ValidEnu).ToArray());
                //string queExValid = StringCleanup.CleanupQueEx(charValid);
-               string spaceValid = StringCleanup.CleanupSpace(charValid);               
+               string spaceValid = StringProcess.CleanupSpace(charValid);               
                return spaceValid;
            };
 
         private static Func<char, bool> ValidEnu = x =>
          {
-             return StringCleanup.ValidLowerEnuOnly(x) || StringCleanup.ValidNumOnly(x) || x == '\'' || x == ' ';
+             return StringProcess.ValidLowerEnuOnly(x) || StringProcess.ValidNumOnly(x) || x == '\'' || x == ' ';
          };
 
         private static Func<string, bool> ValidChsString = x =>
          {
-             return x.All(y => StringCleanup.ValidChsOnly(y) || y == ' ');
+             return x.All(y => StringProcess.ValidChsOnly(y) || y == ' ');
          };
 
         private static Func<Tuple<string, string>, bool> ValidPair = x =>
@@ -212,7 +212,7 @@ namespace TangInfrastructure
         private static TcLine CreateTcFromXml(IEnumerable< XmlNode> segNodes, string locale, string corpus, string sessionId, string internalId)
         {
             var list = segNodes.SelectMany(x => x.SelectNodes("w").Cast<XmlNode>().Select(y => y.InnerText));
-            string trans = StringCleanup.CleanupSpace(string.Join(" ", list));
+            string trans = StringProcess.CleanupSpace(string.Join(" ", list));
             double startTime = 0;
             double endTime = 0;
             if (segNodes.Where(x => x["time"] != null).Count()>1)

@@ -8,21 +8,25 @@ using System.Text.RegularExpressions;
 
 namespace TangInfrastructure
 {
-    static class StringCleanup
+    static class StringProcess
     {
+        static Regex OverlapReg = new Regex("\\[[^]]*OV[^]]*]", RegexOptions.Compiled);
         static Regex SpaceReg = new Regex("[\\s]{2,}", RegexOptions.Compiled);
         static Regex IsoAps = new Regex("(^| )'( |$)", RegexOptions.Compiled);
         static Regex MvAps = new Regex("([a-z]+)' ([a-z]+)", RegexOptions.Compiled);
-        static Regex XReg = new Regex("[x]{1,3}([^a-z]+|$)", RegexOptions.Compiled);
+        static Regex XReg = new Regex("[x]{2,3}|\\bx\\b", RegexOptions.Compiled);
         static Regex SilReg = new Regex("(sil[a-z_]*)|([*]+)|(si_[a-z]*)", RegexOptions.Compiled);
-        static Regex TagReg = new Regex("<[^>]*>", RegexOptions.Compiled);
+        static Regex ContainsTagReg = new Regex("<[^>]*>", RegexOptions.Compiled);
+        static Regex OnlyTagReg = new Regex("^\\s*<[^>]*>\\s*$", RegexOptions.Compiled);
         static Regex SylCleanReg = new Regex("\\?|:|？|：|\\/|\\(|\\)", RegexOptions.Compiled);
         static Regex ExCleanReg = new Regex("[!]+", RegexOptions.Compiled);
         static Regex QueCleanReg = new Regex("[?]+", RegexOptions.Compiled);
 
-        public static string RemoveTag(string s)
+        public static string CleanupTag(string s)
         {
-            return TagReg.Replace(s, string.Empty);
+            string noTag = ContainsTagReg.Replace(s, string.Empty);
+            string noSpace = CleanupSpace(noTag);
+            return noSpace;
         }
 
         public static string TaggingXSil(string inputString)
@@ -34,10 +38,19 @@ namespace TangInfrastructure
 
         public static string CleanupSyl(string inputString)
         {
-            string sepTag = inputString.Replace(">", "> ").Replace("<", " <");
+            if (inputString.Contains('/') || inputString.Contains('\\'))
+                return "<overlap>";
+            string sepTag = ContainsTagReg.Replace(inputString, " $0 ");
             string charClean = SylCleanReg.Replace(sepTag, " ");
             string spaceClean = SpaceReg.Replace(charClean, " ").Trim();
             return spaceClean;
+        }        
+
+        public static string CleanupCcString(string inputString)
+        {
+            string removeOverlap = OverlapReg.Replace(inputString, "<overlap>");
+            string clean = CleanupChsString(removeOverlap, true);
+            return clean;
         }
 
         public static string CleanupChsString(string chsString, bool keepTag = false)
@@ -125,6 +138,10 @@ namespace TangInfrastructure
              string exClean = ExCleanReg.Replace(queClean, " ! ");
              return exClean;
          };
+        public static Func<string, bool> IsTag = x =>
+         {
+             return OnlyTagReg.IsMatch(x);
+         };
         public static Func<char, bool> ValidChsOnly = x =>
          {
              return x >= '一' && x <= '龟';
@@ -141,5 +158,27 @@ namespace TangInfrastructure
          {
              return x >= '0' && x <= '9';
          };
+
+        public static string MatchString(string withTagString, string noTagString)
+        {
+            var withTagList = withTagString.Split(' ');
+            var noTagList = noTagString.Split(' ');
+            // length mismatch.
+            if (noTagList.Length * 2 < withTagList.Length || withTagList.Length * 2 < noTagList.Length)
+                return "";
+            var tagIndices = withTagList.Select((x, y) => new { isTag = x != "<unk>" && OnlyTagReg.IsMatch(x), index = y })
+                .Where(x => x.isTag && x.index > 0).ToArray();
+            var preTagWords = tagIndices.Select(x => withTagList[x.index - 1]).ToArray();
+            // Words mismatch.
+            if (!Common.SequentialContains(noTagList, preTagWords))
+                return "";
+            var list = Common.SequentialMatch(noTagList, preTagWords).ToList();
+            for (int i = 0; i < list.Count; i++)
+            {
+                noTagList[list[i]] = noTagList[list[i]] + " " + withTagList[tagIndices[i].index];
+            }
+
+            return string.Join(" ", noTagList);
+        }
     }
 }

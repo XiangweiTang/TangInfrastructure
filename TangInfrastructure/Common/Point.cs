@@ -35,7 +35,6 @@ namespace TangInfrastructure
         public static IEnumerable<string> InsertPoint(List<IInterval> intervals, List<IPoint> points)
         {
             int pointIndex = 0;
-            double min = intervals[0].Start();
             double max = intervals[intervals.Count - 1].End();
             for(int intervalIndex = 0; intervalIndex < intervals.Count; intervalIndex++)
             {
@@ -45,7 +44,7 @@ namespace TangInfrastructure
                     continue;
                 if (points[pointIndex].Position() >= max)
                     continue;
-                while (pointIndex < points.Count && points[pointIndex].Position() <= min)
+                while (pointIndex < points.Count && points[pointIndex].Position() <= intervals[intervalIndex].Start())
                     pointIndex++;
 
                 if (pointIndex < points.Count)
@@ -55,8 +54,8 @@ namespace TangInfrastructure
                     //  [Start   Position    End]
                     //  End]    Position    [Start
                     if((point.Position()==interval.End())||
-                        (point.Position()<interval.End()&&point.Position()>interval.Start())||
-                        (point.Position()>interval.End()&&point.Position()<intervals[intervalIndex+1].Start())
+                        (point.Position()<=interval.End()&&point.Position()>=interval.Start())||
+                        (point.Position()>=interval.End()&&point.Position()<=intervals[intervalIndex+1].Start())
                         )
                     {
                         yield return point.Value();
