@@ -10,19 +10,23 @@ namespace TangInfrastructure
 {
     static class StringCleanup
     {
+        static Regex OverlapReg = new Regex("\\[[^]]*OV[^]]*]", RegexOptions.Compiled);
         static Regex SpaceReg = new Regex("[\\s]{2,}", RegexOptions.Compiled);
         static Regex IsoAps = new Regex("(^| )'( |$)", RegexOptions.Compiled);
         static Regex MvAps = new Regex("([a-z]+)' ([a-z]+)", RegexOptions.Compiled);
-        static Regex XReg = new Regex("[x]{1,3}([^a-z]+|$)", RegexOptions.Compiled);
+        static Regex XReg = new Regex("[x]{2,3}|\\bx\\b", RegexOptions.Compiled);
         static Regex SilReg = new Regex("(sil[a-z_]*)|([*]+)|(si_[a-z]*)", RegexOptions.Compiled);
-        static Regex TagReg = new Regex("<[^>]*>", RegexOptions.Compiled);
+        static Regex ContainsTagReg = new Regex("<[^>]*>", RegexOptions.Compiled);
+        static Regex OnlyTagReg = new Regex("^\\s*<[^>]*>\\s*$", RegexOptions.Compiled);
         static Regex SylCleanReg = new Regex("\\?|:|？|：|\\/|\\(|\\)", RegexOptions.Compiled);
         static Regex ExCleanReg = new Regex("[!]+", RegexOptions.Compiled);
         static Regex QueCleanReg = new Regex("[?]+", RegexOptions.Compiled);
 
-        public static string RemoveTag(string s)
+        public static string CleanupTag(string s)
         {
-            return TagReg.Replace(s, string.Empty);
+            string noTag = ContainsTagReg.Replace(s, string.Empty);
+            string noSpace = CleanupSpace(noTag);
+            return noSpace;
         }
 
         public static string TaggingXSil(string inputString)
@@ -34,10 +38,19 @@ namespace TangInfrastructure
 
         public static string CleanupSyl(string inputString)
         {
-            string sepTag = inputString.Replace(">", "> ").Replace("<", " <");
+            if (inputString.Contains('/') || inputString.Contains('\\'))
+                return "<overlap>";
+            string sepTag = ContainsTagReg.Replace(inputString, " $0 ");
             string charClean = SylCleanReg.Replace(sepTag, " ");
             string spaceClean = SpaceReg.Replace(charClean, " ").Trim();
             return spaceClean;
+        }        
+
+        public static string CleanupCcString(string inputString)
+        {
+            string removeOverlap = OverlapReg.Replace(inputString, "<overlap>");
+            string clean = CleanupChsString(removeOverlap, true);
+            return clean;
         }
 
         public static string CleanupChsString(string chsString, bool keepTag = false)
@@ -124,6 +137,10 @@ namespace TangInfrastructure
              string queClean = QueCleanReg.Replace(x, " ? ");
              string exClean = ExCleanReg.Replace(queClean, " ! ");
              return exClean;
+         };
+        public static Func<string, bool> IsTag = x =>
+         {
+             return OnlyTagReg.IsMatch(x);
          };
         public static Func<char, bool> ValidChsOnly = x =>
          {

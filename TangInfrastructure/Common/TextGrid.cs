@@ -42,6 +42,74 @@ namespace TangInfrastructure
             File.WriteAllLines(outputPath, list);
         }
 
+        public IEnumerable<string> InsertBiToCc()
+        {
+            var dict = Interval.CreateContainDict(CcList.Cast<IInterval>().ToList(), SylList.Cast<IInterval>().ToList());
+            List<IPoint> biList = BiList.Cast<IPoint>().ToList();
+            foreach(var item in dict)
+            {
+                string sentence = StringCleanup.CleanupTag(CcList[item.Key].Text);
+                int sntLength = sentence.Length;
+                var sylList = item.Value.Select(x => SylList[x] as IInterval).ToList();                
+                var cleanList = sylList.Select(x => x.Value()).Where(x => !StringCleanup.IsTag(x)).ToList();
+                int count = cleanList.Count;
+                bool suffixFlag = count < sentence.Length && ValidSuffix(sentence, count);
+                if (sentence.Length == 0)
+                    continue;
+                if (count == sntLength||suffixFlag)
+                {
+                    var newList = suffixFlag ? IntervalTransform(ReorgString(sentence), sylList) : IntervalTransform(sentence, sylList);
+                    var merged = Point.InsertPoint(newList.ToList(), BiList.Cast<IPoint>().ToList());
+                    yield return string.Join(" ", merged);                    
+                }
+            }
+        }    
+        
+        private bool ValidSuffix(string snt, int count)
+        {
+            if (snt.Replace("儿", "").Length == count)
+                return true;
+            if (snt.Replace("呃", "").Length == count)
+                return true;
+            return snt.Replace("啊", "").Length == count;
+        }
+
+        private IEnumerable<string> ReorgString(string snt)
+        {
+            char c = '\u0000';
+            if (snt.Contains('儿'))
+                c = '儿';
+            else if (snt.Contains('呃'))
+                c = '呃';
+            else
+                c = '啊';
+            for(int i = 0; i < snt.Length; i++)
+            {
+                if (i < snt.Length - 1 && snt[i + 1] == c)
+                {
+                    yield return snt.Substring(i, 2);
+                    i++;
+                }
+                else
+                    yield return snt[i].ToString();
+            }
+        }
+
+        private IEnumerable<IInterval> IntervalTransform<T>(IEnumerable<T> collection, IEnumerable<IInterval> intervalList)
+        {
+            int i = 0;
+            var array = collection.ToArray();
+            foreach (var interval in intervalList)
+            {
+                if (!StringCleanup.IsTag(interval.Value()))
+                {
+                    TextGridInterval ti = new TextGridInterval(interval, array[i].ToString());
+                    yield return ti as IInterval;
+                    i++;
+                }
+            }
+        }
+
         private IEnumerable< IEnumerable<string>> _ReBuild()
         {
             TaggingBi();
@@ -122,7 +190,7 @@ namespace TangInfrastructure
         {
             foreach(TextGridItem tgi in ItemDict["CC"])
             {
-                string text = StringCleanup.CleanupChsString(tgi.Text, true);
+                string text = StringCleanup.CleanupCcString(tgi.Text);
                 tgi.UpdateText(text);
             }
         }
@@ -255,7 +323,12 @@ namespace TangInfrastructure
         {
             Type = TextGridItemType.Interval;     
         }
-
+        public TextGridInterval(IInterval interval, string value)
+        {
+            XMin = interval.Start();
+            XMax = interval.End();
+            Text = value;
+        }
         public void SetAsTag()
         {
             Text = $"{Name}{Text}";

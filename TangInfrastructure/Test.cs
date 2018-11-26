@@ -17,26 +17,17 @@ namespace TangInfrastructure
         Regex ValidReg = new Regex("^[a-zA-Z_]*$", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            Opus o = new Opus(Cfg);
-            //Opus.DecompressXmls();
-            //Opus.XmlToTc();
-            Opus.MatchPairFiles();
-            //RunNmt rn = new RunNmt(Cfg);
-            //rn.RunDemoTrain();
+            string inputPath = @"D:\private\Bank\bank\NDYH0002.TextGrid";
+            string path = @"D:\private\Bank\bank\NDYH0002_new.TextGrid";
+            var tg = new TextGrid(inputPath);
+            //tg.Rebuild(path);
+            LoadTextGrid(path);
         }
 
-        private bool RebuildTextGrid(string inputPath, string outputPath)
+        private void LoadTextGrid(string path)
         {
-            try
-            {
-                TextGrid tg = new TextGrid(inputPath);
-                tg.Rebuild(outputPath);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            TextGrid tg = new TextGrid(path);
+            var list = tg.InsertBiToCc().ToList();
         }
     }
 }
