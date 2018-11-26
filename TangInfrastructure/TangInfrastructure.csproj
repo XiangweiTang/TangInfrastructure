@@ -61,8 +61,7 @@
     <Compile Include="RunNmt.cs" />
     <Compile Include="Sanity.cs" />
     <Compile Include="SubtitleMatch.cs" />
-    <Compile Include="Common\StringCleanup.cs" />
-    <Compile Include="TangFeature.cs" />
+    <Compile Include="Common\StringProcess.cs" />
     <Compile Include="Test.cs" />
   </ItemGroup>
   <ItemGroup>

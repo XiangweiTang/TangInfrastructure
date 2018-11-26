@@ -283,6 +283,48 @@ namespace TangInfrastructure
             return items;
         }
 
+        public static bool SequentialContains<T>(IEnumerable<T> bigCollection, IEnumerable<T> smallCollection)
+        {
+            var smallArray = smallCollection.ToArray();
+            int smallIndex = 0;
+            foreach(T bigT in bigCollection)
+            {
+                if (smallIndex >= smallArray.Length)
+                    return true;
+                for(int i = smallIndex; i < smallArray.Length; i++)
+                {
+                    if (bigT.Equals(smallArray[smallIndex]))
+                    {
+                        smallIndex = i + 1;
+                        break;
+                    }
+                }
+            }
+            return smallIndex >= smallArray.Length;
+        }
+
+        public static IEnumerable<int> SequentialMatch<T>(IEnumerable<T> bigCollection, IEnumerable<T> smallCollection)
+        {
+            var smallArray = smallCollection.ToArray();
+            int smallIndex = 0;
+            int bigIndex = 0;
+            foreach (T bigT in bigCollection)
+            {                
+                if (smallIndex >= smallArray.Length)
+                    break;
+                for (int i = smallIndex; i < smallArray.Length; i++)
+                {
+                    if (bigT.Equals(smallArray[smallIndex]))
+                    {
+                        yield return bigIndex;
+                        smallIndex = i + 1;
+                        break;
+                    }
+                }
+                bigIndex++;
+            }
+        }
+
         public static void FolderTransport(string inputFolderPath, string outputFolderPath, Func<string,string,bool> fileTransport, string pattern="*")
         {
             Parallel.ForEach(Directory.EnumerateFiles(inputFolderPath, pattern), new ParallelOptions { MaxDegreeOfParallelism = 10 }, inputFilePath =>

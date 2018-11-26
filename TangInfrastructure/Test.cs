@@ -17,26 +17,15 @@ namespace TangInfrastructure
         Regex ValidReg = new Regex("^[a-zA-Z_]*$", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            //Opus o = new Opus(Cfg);
-            //Opus.DecompressXmls();
-            //Opus.XmlToTc();
-            //Opus.MatchPairFiles();
-            RunNmt rn = new RunNmt(Cfg);
-            rn.RunDemoTrain();
+            string noTagString = "今天 很 高兴 见到 大家";
+            string tagString = "明天 很 <tag> 愉快 遇见 你";
+            string s = StringProcess.MatchString(tagString, noTagString);
         }
 
-        private bool RebuildTextGrid(string inputPath, string outputPath)
+        private void LoadTextGrid(string path)
         {
-            try
-            {
-                TextGrid tg = new TextGrid(inputPath);
-                tg.Rebuild(outputPath);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            TextGrid tg = new TextGrid(path);
+            var list = tg.InsertBiToCc().ToList();
         }
     }
 }
