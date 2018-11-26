@@ -18,8 +18,7 @@ namespace TangInfrastructure
         {
             string fileName = Cfg.PythonPath;
             string args = Cfg.TrainNmtCommand;
-            //Common.RunFile(fileName, args,Cfg.NmtFolder);
-            System.IO.File.WriteAllText("command.bat", args);
+            Common.RunFile(fileName, args,Cfg.NmtFolder);
         }
 
         public void RunDemoTest()

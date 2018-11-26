@@ -55,7 +55,7 @@ namespace TangInfrastructure
             {
                 XDoc.Load(xReader);
                 CommonNode = XDoc["Root"]["Common"];
-                //LoadCommonNode();
+                LoadCommonNode();
                 NmtModelWorkFolder = XDoc["Root"]["Nmt"]["WorkFolder"].Attributes["Path"].Value;
             }            
         }
