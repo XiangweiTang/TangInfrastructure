@@ -1,5 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<Root TaskName="">
+<Root>
+  <OpusData Used="true" RootFolder="" Run="">
+    <CorporaList>
+      <Corpus Name=""/>
+    </CorporaList>
+    <ExtractFromGzToXml Run="false"/>
+    <ExtractFromXmlToText Run="false"/>
+    <SplitText Run="false"/>
+  </OpusData>
+  <Nmt RunTrain="false" RunTest="false">
+    
+  </Nmt>
   <Common>
     <Cmd Path=""/>
     <PowerShell Path=""/>
