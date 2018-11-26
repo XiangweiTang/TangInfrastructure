@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace TangInfrastructure
 {
-    static class StringCleanup
+    static class StringProcess
     {
         static Regex OverlapReg = new Regex("\\[[^]]*OV[^]]*]", RegexOptions.Compiled);
         static Regex SpaceReg = new Regex("[\\s]{2,}", RegexOptions.Compiled);
@@ -158,5 +158,27 @@ namespace TangInfrastructure
          {
              return x >= '0' && x <= '9';
          };
+
+        public static string MatchString(string withTagString, string noTagString)
+        {
+            var withTagList = withTagString.Split(' ');
+            var noTagList = noTagString.Split(' ');
+            // length mismatch.
+            if (noTagList.Length * 2 < withTagList.Length || withTagList.Length * 2 < noTagList.Length)
+                return "";
+            var tagIndices = withTagList.Select((x, y) => new { isTag = x != "<unk>" && OnlyTagReg.IsMatch(x), index = y })
+                .Where(x => x.isTag && x.index > 0).ToArray();
+            var preTagWords = tagIndices.Select(x => withTagList[x.index - 1]).ToArray();
+            // Words mismatch.
+            if (!Common.SequentialContains(noTagList, preTagWords))
+                return "";
+            var list = Common.SequentialMatch(noTagList, preTagWords).ToList();
+            for (int i = 0; i < list.Count; i++)
+            {
+                noTagList[list[i]] = noTagList[list[i]] + " " + withTagList[tagIndices[i].index];
+            }
+
+            return string.Join(" ", noTagList);
+        }
     }
 }

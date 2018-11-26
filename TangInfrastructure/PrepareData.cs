@@ -44,7 +44,7 @@ namespace TangInfrastructure
 
         private Tuple<string,string> CleanupPairs(Tuple<string,string> pair)
         {
-            return new Tuple<string, string>(StringCleanup.CleanupChsString(pair.Item1), StringCleanup.CleanupEnuString(pair.Item2));
+            return new Tuple<string, string>(StringProcess.CleanupChsString(pair.Item1), StringProcess.CleanupEnuString(pair.Item2));
         }
 
         private IEnumerable<IEnumerable<Tuple<string, string>>> GetPairFile(string folderPath)

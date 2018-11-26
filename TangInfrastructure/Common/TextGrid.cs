@@ -48,10 +48,10 @@ namespace TangInfrastructure
             List<IPoint> biList = BiList.Cast<IPoint>().ToList();
             foreach(var item in dict)
             {
-                string sentence = StringCleanup.CleanupTag(CcList[item.Key].Text);
+                string sentence = StringProcess.CleanupTag(CcList[item.Key].Text);
                 int sntLength = sentence.Length;
                 var sylList = item.Value.Select(x => SylList[x] as IInterval).ToList();                
-                var cleanList = sylList.Select(x => x.Value()).Where(x => !StringCleanup.IsTag(x)).ToList();
+                var cleanList = sylList.Select(x => x.Value()).Where(x => !StringProcess.IsTag(x)).ToList();
                 int count = cleanList.Count;
                 bool suffixFlag = count < sentence.Length && ValidSuffix(sentence, count);
                 if (sentence.Length == 0)
@@ -101,7 +101,7 @@ namespace TangInfrastructure
             var array = collection.ToArray();
             foreach (var interval in intervalList)
             {
-                if (!StringCleanup.IsTag(interval.Value()))
+                if (!StringProcess.IsTag(interval.Value()))
                 {
                     TextGridInterval ti = new TextGridInterval(interval, array[i].ToString());
                     yield return ti as IInterval;
@@ -190,7 +190,7 @@ namespace TangInfrastructure
         {
             foreach(TextGridItem tgi in ItemDict["CC"])
             {
-                string text = StringCleanup.CleanupCcString(tgi.Text);
+                string text = StringProcess.CleanupCcString(tgi.Text);
                 tgi.UpdateText(text);
             }
         }
@@ -199,8 +199,8 @@ namespace TangInfrastructure
         {
             foreach(TextGridItem tgi in ItemDict["SYL"])
             {
-                string text = StringCleanup.TaggingXSil(tgi.Text);
-                string cleanText = StringCleanup.CleanupSyl(text);
+                string text = StringProcess.TaggingXSil(tgi.Text);
+                string cleanText = StringProcess.CleanupSyl(text);
                 tgi.UpdateText(cleanText);
             }
         }
