@@ -21,6 +21,8 @@ namespace TangInfrastructure
             //Opus.DecompressXmls();
             //Opus.XmlToTc();
             Opus.MatchPairFiles();
+            //RunNmt rn = new RunNmt(Cfg);
+            //rn.RunDemoTrain();
         }
 
         private bool RebuildTextGrid(string inputPath, string outputPath)

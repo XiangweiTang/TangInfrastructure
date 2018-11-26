@@ -23,7 +23,7 @@ namespace TangInfrastructure
         public static void MatchPairFiles()
         {
             var list = Cfg.UsedCorpora.SelectMany(x => MatchPairFilesByCorpus(x));
-            var split = new SplitData<Tuple<string, string>>(list);
+            var split = new SplitData<Tuple<string, string>>(list, 5000, 5000);
 
             PrintData("dev", split.Dev);
             PrintData("test", split.Test);
@@ -66,9 +66,10 @@ namespace TangInfrastructure
         {
             string srcFilePath = pathLine.Split('\t')[1];
             string tgtFilePath = pathLine.Split('\t')[3];
+            Console.WriteLine("Processing " + srcFilePath);
             var srcList = File.ReadLines(srcFilePath).Select(x => new TcLine(x).Transcription).Select(CleanupEnuString);            
             var tgtList = File.ReadLines(tgtFilePath).Select(x => new TcLine(x).Transcription).Select(CleanupChsString);
-            return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y));
+            return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y)).Where(x => ValidChsString(x.Item2));
         }
         #endregion
 
@@ -100,6 +101,19 @@ namespace TangInfrastructure
          {
              return StringCleanup.ValidLowerEnuOnly(x) || StringCleanup.ValidNumOnly(x) || x == '\'' || x == ' ';
          };
+
+        private static Func<string, bool> ValidChsString = x =>
+         {
+             return x.All(y => StringCleanup.ValidChsOnly(y) || y == ' ');
+         };
+
+        private static Func<Tuple<string, string>, bool> ValidPair = x =>
+          {
+              int srcLength = x.Item1.Split(' ').Length;
+              int tgtLength = x.Item2.Split(' ').Length;
+              return Constants.CHS_ENU_RATIO * tgtLength * Constants.LENGTH_RATIO >= srcLength
+              && Constants.CHS_ENU_RATIO * tgtLength >= srcLength * Constants.LENGTH_RATIO;
+          };
         #endregion
 
         #region Turn to Tc
@@ -145,7 +159,7 @@ namespace TangInfrastructure
 
             Console.WriteLine("Processing " + corpus + " " + sessionId);
 
-
+            
             string fromTcPath = Path.Combine(fromTcFolder, fromDocFileName + ".txt");
             string toTcPath = Path.Combine(toTcFolder, toDocFileName + ".txt");
             try
