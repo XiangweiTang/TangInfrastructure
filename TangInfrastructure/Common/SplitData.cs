@@ -17,9 +17,9 @@ namespace TangInfrastructure
             Split(shuffle, devCount, testCount);
         }
 
-        public SplitData(IEnumerable<T> inputCollection)
+        public SplitData(IEnumerable<T> inputCollection, IEqualityComparer<T> equalityComparer=null)
         {
-            var shuffle = inputCollection.Shuffle();
+            var shuffle = (equalityComparer == null) ? inputCollection.Shuffle() : inputCollection.Distinct(equalityComparer).Shuffle();
             int n = shuffle.Length;
             int devCount = Convert.ToInt32(n * 0.02);
             int testCount = Convert.ToInt32(n * 0.02);

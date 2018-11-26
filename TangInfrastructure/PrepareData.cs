@@ -19,7 +19,7 @@ namespace TangInfrastructure
         {
             var parallelData = Cfg.UsedCorpora
                 .SelectMany(x => GetPairFile(Path.Combine(Cfg.ParallelDataFolder, x))).SelectMany(x => x);
-            SplitData<Tuple<string, string>> sd = new SplitData<Tuple<string, string>>(parallelData);
+            SplitData<Tuple<string, string>> sd = new SplitData<Tuple<string, string>>(parallelData, new PairEquality());
             var dev = sd.Dev;
             var test = sd.Test;
             var train = sd.Train;
@@ -72,6 +72,20 @@ namespace TangInfrastructure
 
             //var list = head.Concat(tail).Take(vocabSize).ToList();
             //File.WriteAllLines(outputPath, list);
+        }
+
+        
+    }
+    class PairEquality : IEqualityComparer<Tuple<string, string>>
+    {
+        public bool Equals(Tuple<string, string> x, Tuple<string, string> y)
+        {
+            return x.Item1 == y.Item1 && x.Item2 == y.Item2;
+        }
+
+        public int GetHashCode(Tuple<string, string> t)
+        {
+            return t.Item1.GetHashCode() ^ t.Item2.GetHashCode();
         }
     }
 }

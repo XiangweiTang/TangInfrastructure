@@ -69,7 +69,7 @@ namespace TangInfrastructure
             Console.WriteLine("Processing " + srcFilePath);
             var srcList = File.ReadLines(srcFilePath).Select(x => new TcLine(x).Transcription).Select(CleanupEnuString);            
             var tgtList = File.ReadLines(tgtFilePath).Select(x => new TcLine(x).Transcription).Select(CleanupChsString);
-            return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y)).Where(x => ValidChsString(x.Item2));
+            return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y)).Where(x => ValidChsString(x.Item2)).Where(ValidPair);
         }
         #endregion
 
@@ -111,8 +111,9 @@ namespace TangInfrastructure
           {
               int srcLength = x.Item1.Split(' ').Length;
               int tgtLength = x.Item2.Split(' ').Length;
-              return Constants.CHS_ENU_RATIO * tgtLength * Constants.LENGTH_RATIO >= srcLength
-              && Constants.CHS_ENU_RATIO * tgtLength >= srcLength * Constants.LENGTH_RATIO;
+              bool r= Constants.CHS_ENU_RATIO * tgtLength * Constants.LENGTH_RATIO >= srcLength
+              && Constants.CHS_ENU_RATIO * tgtLength <= srcLength * Constants.LENGTH_RATIO;
+              return r;
           };
         #endregion
 
