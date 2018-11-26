@@ -53,9 +53,9 @@ namespace TangInfrastructure
                     //  [Start   End=Position]
                     //  [Start   Position    End]
                     //  End]    Position    [Start
-                    if((point.Position()==interval.End())||
-                        (point.Position()<=interval.End()&&point.Position()>=interval.Start())||
-                        (point.Position()>=interval.End()&&point.Position()<=intervals[intervalIndex+1].Start())
+                    if ((point.Position() == interval.End()) ||
+                        (point.Position() <= interval.End() && point.Position() >= interval.Start()) ||
+                        (point.Position() >= interval.End() && intervalIndex < intervals.Count - 1 && point.Position() <= intervals[intervalIndex + 1].Start())
                         )
                     {
                         yield return point.Value();

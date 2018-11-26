@@ -11,9 +11,9 @@ namespace TangInfrastructure
         public T[] Train { get; private set; } = new T[0];
         public T[] Dev { get; private set; } = new T[0];
         public T[] Test { get; private set; } = new T[0];
-        public SplitData(IEnumerable<T> inputCollection, int devCount, int testCount)
+        public SplitData(IEnumerable<T> inputCollection, int devCount, int testCount, IEqualityComparer<T> equalityComparer = null)
         {
-            var shuffle = inputCollection.Shuffle();
+            var shuffle = (equalityComparer == null) ? inputCollection.Shuffle() : inputCollection.Distinct(equalityComparer).Shuffle();
             Split(shuffle, devCount, testCount);
         }
 

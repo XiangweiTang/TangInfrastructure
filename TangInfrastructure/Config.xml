@@ -9,7 +9,7 @@
     <SplitText Run="false"/>
   </OpusData>
   <Nmt RunTrain="false" RunTest="false">
-    
+    <WorkFolder Path=""/>
   </Nmt>
   <Common>
     <Cmd Path=""/>
