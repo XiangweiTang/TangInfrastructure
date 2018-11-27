@@ -172,7 +172,7 @@ namespace TangInfrastructure
             // Words mismatch.
             if (!Common.SequentialContains(noTagList, preTagWords))
                 return "";
-            var list = Common.SequentialMatch(noTagList, preTagWords).ToList();
+            var list = Common.SequentialMatch(noTagList, preTagWords).Reverse().ToList();
             for (int i = 0; i < list.Count; i++)
             {
                 noTagList[list[i]] = noTagList[list[i]] + " " + withTagList[tagIndices[i].index];

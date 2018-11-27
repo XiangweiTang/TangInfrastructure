@@ -28,7 +28,28 @@ namespace TangInfrastructure
             }
             return dict;
         }
-        
+        public static IEnumerable<string> PadIntervals(List<IInterval> seqIntervalList, List<IInterval> padIntervalList)
+        {
+            int padIntervalIndex = 0;
+            for(int seqIntervalIndex = 0; seqIntervalIndex < seqIntervalList.Count; seqIntervalIndex++)
+            {
+                string s= seqIntervalList[seqIntervalIndex].Value();
+                yield return seqIntervalList[seqIntervalIndex].Value();
+                while (padIntervalIndex < padIntervalList.Count && padIntervalList[padIntervalIndex].End() <= seqIntervalList[seqIntervalIndex].Start())
+                    padIntervalIndex++;
+                if (padIntervalIndex < padIntervalList.Count
+                    && padIntervalList[padIntervalIndex].Start() >= seqIntervalList[seqIntervalIndex].Start()
+                    && padIntervalList[padIntervalIndex].Start() < seqIntervalList[seqIntervalIndex].End())
+                {
+                    double ps = padIntervalList[padIntervalIndex].Start();
+                    double ss = seqIntervalList[seqIntervalIndex].Start();
+                    double se= seqIntervalList[seqIntervalIndex].End();
+                    string p= padIntervalList[padIntervalIndex].Value();
+                    yield return padIntervalList[padIntervalIndex].Value();
+                    padIntervalIndex++;
+                }
+            }
+        }
     }
 
     interface IInterval

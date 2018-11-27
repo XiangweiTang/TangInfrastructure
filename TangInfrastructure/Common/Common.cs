@@ -305,10 +305,10 @@ namespace TangInfrastructure
 
         public static IEnumerable<int> SequentialMatch<T>(IEnumerable<T> bigCollection, IEnumerable<T> smallCollection)
         {
-            var smallArray = smallCollection.ToArray();
+            var smallArray = smallCollection.Reverse().ToArray();
             int smallIndex = 0;
             int bigIndex = 0;
-            foreach (T bigT in bigCollection)
+            foreach (T bigT in bigCollection.Reverse())
             {                
                 if (smallIndex >= smallArray.Length)
                     break;
