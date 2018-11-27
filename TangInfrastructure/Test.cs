@@ -18,10 +18,27 @@ namespace TangInfrastructure
         Regex Tags = new Regex("<[^>]*>", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            TextGrid oldTg = new TextGrid(@"D:\private\Bank\bank\NDYH0002.TextGrid");
-            oldTg.Rebuild(@"D:\private\Bank\bank\NDYH0002_new.TextGrid");
-            TextGrid tg = new TextGrid(@"D:\private\Bank\bank\NDYH0002_new.TextGrid");
-            var list = tg.InsertStToCc().ToList();
+        }
+
+        private IEnumerable<Tuple<string,string>> Merge(string folderPath, string type)
+        {
+            string zhPath = Path.Combine(folderPath, type + ".zh");
+            string enPath = Path.Combine(folderPath, type + ".en");
+            return File.ReadLines(zhPath).Zip(File.ReadLines(enPath), (x, y) => new Tuple<string, string>(x, y));
+        }
+
+        private bool Replace(string tagPath, string noTagPath)
+        {
+            var list = File.ReadAllLines(tagPath).Select(x => StringProcess.CleanupTag(x));
+            File.WriteAllLines(noTagPath, list);
+            return true;
+        }
+
+        private void ReprintTripleFiles(string zhSrcPath, string zhTgtPath, string enuPath)
+        {
+            var list = File.ReadLines(zhSrcPath).Zip(File.ReadLines(zhTgtPath), (x, y) => StringProcess.MatchString(y, x)).Zip(File.ReadLines(enuPath), (x, y) => new Tuple<string, string>(x, y))
+                .Where(x => !string.IsNullOrWhiteSpace(x.Item1));
+            Common.WritePairFiles(@"D:\tmp\DeepMatch\ch.ch", @"D:\tmp\DeepMatch\en.en", list);
         }
 
         private void CleanupTextGrids()

@@ -44,7 +44,7 @@ namespace TangInfrastructure
             }
         }
 
-        private static void PrepareDict(string inputPath, int vocabSize, string outputPath)
+        public static void PrepareDict(string inputPath, int vocabSize, string outputPath)
         {
             var head = Common.ToCollection("<unk>", "<s>", "</s>");
             var tail = File.ReadLines(inputPath).SelectMany(x => x.Split(' '))

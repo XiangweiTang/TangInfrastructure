@@ -347,5 +347,31 @@ namespace TangInfrastructure
          {
              return !string.IsNullOrWhiteSpace(x);
          };
+
+        public static void PrintData(IEnumerable<Tuple<string,string>> sntPair, string folder, string type, string srcPattern, string tgtPattern)
+        {
+            string srcPath = Path.Combine(folder, type + srcPattern);
+            string tgtPath = Path.Combine(folder, type + tgtPattern);
+            WritePairFiles(srcPath, tgtPath, sntPair);
+        }
+        
+        public static void BuildVocab(string inputPath, int maxVocab, string outputPath, IEnumerable<string> head, string pattern="*")
+        {
+            IEnumerable<string> list;
+            if (File.Exists(inputPath))
+            {
+                list = File.ReadLines(inputPath).SelectMany(x => x.Split(' '));
+            }
+            else if (Directory.Exists(inputPath))
+            {
+                list = Directory.EnumerateFiles(inputPath, pattern).SelectMany(x => File.ReadLines(x)).SelectMany(x => x.Split(' '));
+            }
+            else
+            {
+                throw new TangInfrastructureException($"The path {inputPath} doesn't exist!");
+            }
+            var vocab = head.Concat(list.GroupBy(x => x).OrderByDescending(x => x.Count()).Select(x => x.Key));
+            File.WriteAllLines(outputPath, vocab);
+        }
     }
 }
