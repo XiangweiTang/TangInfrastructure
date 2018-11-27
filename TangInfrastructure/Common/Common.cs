@@ -370,7 +370,7 @@ namespace TangInfrastructure
             {
                 throw new TangInfrastructureException($"The path {inputPath} doesn't exist!");
             }
-            var vocab = head.Concat(list.GroupBy(x => x).OrderByDescending(x => x.Count()).Select(x => x.Key)).Take(maxVocab);
+            var vocab = head.Concat(list.GroupBy(x => x).OrderByDescending(x => x.Count()).Select(x => x.Key)).Where(x=>!string.IsNullOrWhiteSpace(x)).Take(maxVocab);
             File.WriteAllLines(outputPath, vocab);
         }
 

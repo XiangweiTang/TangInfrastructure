@@ -19,7 +19,7 @@ namespace TangInfrastructure
         public Test(string[] args)
         {
             PrepareTagData p = new PrepareTagData(Cfg);
-            //PrepareTagData.ReorgData(@"D:\tmp\DeepMatchReverse\dedupe\all.en", @"D:\tmp\DeepMatchReverse\dedupe\all.zh", @"D:\tmp\DeepMatchReverseWithoutTag", @"D:\tmp\DeepMatchReverseWithTag", 5000, 5000);
+            PrepareTagData.ReorgData(@"D:\tmp\DeepMatchReverse\dedupe\all.en", @"D:\tmp\DeepMatchReverse\dedupe\all.zh", @"D:\tmp\DeepMatchReverseWithoutTag", @"D:\tmp\DeepMatchReverseWithTag", 5000, 5000);
             PrepareTagData.R = CountRatio(@"D:\tmp\DeepMatchReverseWithTag\train.zh");
             Common.FolderTransport(@"D:\tmp\DeepMatchReverseWithoutTag", @"D:\tmp\DeepMatchReverseRandomTag", PrepareTagData.CreateTagData,"*.zh");
         }
