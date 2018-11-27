@@ -18,6 +18,30 @@ namespace TangInfrastructure
         Regex Tags = new Regex("<[^>]*>", RegexOptions.Compiled);
         public Test(string[] args)
         {
+            PrepareTagData p = new PrepareTagData(Cfg);
+            //PrepareTagData.ReorgData(@"D:\tmp\DeepMatchReverse\dedupe\all.en", @"D:\tmp\DeepMatchReverse\dedupe\all.zh", @"D:\tmp\DeepMatchReverseWithoutTag", @"D:\tmp\DeepMatchReverseWithTag", 5000, 5000);
+            PrepareTagData.R = CountRatio(@"D:\tmp\DeepMatchReverseWithTag\train.zh");
+            Common.FolderTransport(@"D:\tmp\DeepMatchReverseWithoutTag", @"D:\tmp\DeepMatchReverseRandomTag", PrepareTagData.CreateTagData,"*.zh");
+        }
+
+        private void TmpPrepareReverse()
+        {
+            ReprintTripleFiles(@"D:\tmp\TagData\zh.sr", @"D:\tmp\TagData\zh.tg", @"D:\tmp\TagData\en.en");
+            var list = Common.ReadPairs(@"D:\tmp\DeepMatchReverse\ch.ch", @"D:\tmp\DeepMatchReverse\en.en").Distinct(); ;
+            Common.WritePairFiles(@"D:\tmp\DeepMatchReverse\dedupe\all.zh", @"D:\tmp\DeepMatchReverse\dedupe\all.en", list);
+        }
+
+        private double CountRatio(string filePath)
+        {
+            int total = 0;
+            int tag = 0;
+            foreach(string word in File.ReadLines(filePath).SelectMany(x=>x.Split(' ')))
+            {
+                total++;
+                if (word == " < bi>")
+                    tag++;
+            }
+            return 1.0 * tag / total;
         }
 
         private IEnumerable<Tuple<string,string>> Merge(string folderPath, string type)
@@ -38,7 +62,7 @@ namespace TangInfrastructure
         {
             var list = File.ReadLines(zhSrcPath).Zip(File.ReadLines(zhTgtPath), (x, y) => StringProcess.MatchString(y, x)).Zip(File.ReadLines(enuPath), (x, y) => new Tuple<string, string>(x, y))
                 .Where(x => !string.IsNullOrWhiteSpace(x.Item1));
-            Common.WritePairFiles(@"D:\tmp\DeepMatch\ch.ch", @"D:\tmp\DeepMatch\en.en", list);
+            Common.WritePairFiles(@"D:\tmp\DeepMatchReverse\ch.ch", @"D:\tmp\DeepMatchReverse\en.en", list);
         }
 
         private void CleanupTextGrids()

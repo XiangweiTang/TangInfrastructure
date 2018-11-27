@@ -370,8 +370,15 @@ namespace TangInfrastructure
             {
                 throw new TangInfrastructureException($"The path {inputPath} doesn't exist!");
             }
-            var vocab = head.Concat(list.GroupBy(x => x).OrderByDescending(x => x.Count()).Select(x => x.Key));
+            var vocab = head.Concat(list.GroupBy(x => x).OrderByDescending(x => x.Count()).Select(x => x.Key)).Take(maxVocab);
             File.WriteAllLines(outputPath, vocab);
+        }
+
+        public static IEnumerable<Tuple<string,string>> ReadPairs(string srcPath, string tgtPath)
+        {
+            var srcList = File.ReadLines(srcPath);
+            var tgtList = File.ReadLines(tgtPath);
+            return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y));
         }
     }
 }

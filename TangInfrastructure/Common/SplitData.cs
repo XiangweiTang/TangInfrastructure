@@ -11,15 +11,17 @@ namespace TangInfrastructure
         public T[] Train { get; private set; } = new T[0];
         public T[] Dev { get; private set; } = new T[0];
         public T[] Test { get; private set; } = new T[0];
-        public SplitData(IEnumerable<T> inputCollection, int devCount, int testCount, IEqualityComparer<T> equalityComparer = null)
+        public SplitData(IEnumerable<T> inputCollection, int devCount, int testCount)
         {
-            var shuffle = (equalityComparer == null) ? inputCollection.Shuffle() : inputCollection.Distinct(equalityComparer).Shuffle();
+            var shuffle = inputCollection.Distinct().Shuffle();
+            devCount = Math.Max(devCount, 0);
+            testCount = Math.Max(testCount, 0);
             Split(shuffle, devCount, testCount);
         }
 
-        public SplitData(IEnumerable<T> inputCollection, IEqualityComparer<T> equalityComparer=null)
+        public SplitData(IEnumerable<T> inputCollection)
         {
-            var shuffle = (equalityComparer == null) ? inputCollection.Shuffle() : inputCollection.Distinct(equalityComparer).Shuffle();
+            var shuffle = inputCollection.Distinct().Shuffle();
             int n = shuffle.Length;
             int devCount = Convert.ToInt32(n * 0.02);
             int testCount = Convert.ToInt32(n * 0.02);
