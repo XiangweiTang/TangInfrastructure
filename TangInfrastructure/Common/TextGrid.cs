@@ -24,6 +24,7 @@ namespace TangInfrastructure
         public List<TextGridInterval> CcList => ItemDict["CC"].Cast<TextGridInterval>().ToList();
         public List<TextGridInterval> IfList => ItemDict["IF"].Cast<TextGridInterval>().ToList();
         public List<TextGridPoint> BiList => ItemDict["BI"].Cast<TextGridPoint>().ToList();
+        public List<TextGridInterval> StList => ItemDict["ST"].Cast<TextGridInterval>().ToList();
         public bool RunRebuild = true;
         public TextGrid(string path)
         {
@@ -59,12 +60,34 @@ namespace TangInfrastructure
                 if (count == sntLength||suffixFlag)
                 {
                     var newList = suffixFlag ? IntervalTransform(ReorgString(sentence), sylList) : IntervalTransform(sentence, sylList);
-                    var merged = Point.InsertPoint(newList.ToList(), BiList.Cast<IPoint>().ToList());
+                    var merged = Point.InsertPoint(newList.ToList(), biList);
                     yield return string.Join(" ", merged);                    
                 }
             }
         }    
         
+        public IEnumerable<string> InsertStToCc()
+        {
+            var dict = Interval.CreateContainDict(CcList.Cast<IInterval>().ToList(), SylList.Cast<IInterval>().ToList());
+            List<IInterval> stList = StList.Cast<IInterval>().ToList();
+            foreach(var item in dict)
+            {
+                string sentence = StringProcess.CleanupTag(CcList[item.Key].Text);
+                int sntLength = sentence.Length;
+                var sylList = item.Value.Select(x => SylList[x] as IInterval).ToList();
+                var cleanList = sylList.Select(x => x.Value()).Where(x => !StringProcess.IsTag(x)).ToList();
+                int count = cleanList.Count();
+                bool suffixFlag = count < sentence.Length && ValidSuffix(sentence, count);
+                if (sentence.Length == 0)
+                    continue;
+                if (count == sntLength || suffixFlag)
+                {
+                    var newList = suffixFlag ? IntervalTransform(ReorgString(sentence), sylList) : IntervalTransform(sentence, sylList);
+                    var merged = Interval.PadIntervals(newList.ToList(), stList);
+                    yield return string.Join(" ", merged);
+                }
+            }
+        }
         private bool ValidSuffix(string snt, int count)
         {
             if (snt.Replace("儿", "").Length == count)
@@ -115,6 +138,7 @@ namespace TangInfrastructure
             TaggingBi();
             TaggingSyl();
             TaggingcC();
+            TaggingSt();
             double xmin = double.Parse(Header.Single(x => x.Contains("xmin")).Split('=')[1].Trim());
             double xmax = double.Parse(Header.Single(x => x.Contains("xmax")).Split('=')[1].Trim());
             yield return Header;
@@ -172,6 +196,19 @@ namespace TangInfrastructure
                     var intervals = sylIndices.Select(x => SylList[x] as IInterval).ToList();
                     var points = biIndices.Select(x => BiList[x] as IPoint).ToList();
                     var wordList = Point.InsertPoint(intervals, points).ToList();
+                }
+            }
+        }
+
+        private void TaggingSt()
+        {
+            foreach(TextGridItem tgi in ItemDict["ST"])
+            {
+                string text = tgi.Text;
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    string tagging = $"<ST{text}>";
+                    tgi.UpdateText(tagging);
                 }
             }
         }

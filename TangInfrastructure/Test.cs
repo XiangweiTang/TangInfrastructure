@@ -18,8 +18,10 @@ namespace TangInfrastructure
         Regex Tags = new Regex("<[^>]*>", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            RunNmt rn = new RunNmt(Cfg);
-            rn.RunDemoTrain();
+            TextGrid oldTg = new TextGrid(@"D:\private\Bank\bank\NDYH0002.TextGrid");
+            oldTg.Rebuild(@"D:\private\Bank\bank\NDYH0002_new.TextGrid");
+            TextGrid tg = new TextGrid(@"D:\private\Bank\bank\NDYH0002_new.TextGrid");
+            var list = tg.InsertStToCc().ToList();
         }
 
         private void CleanupTextGrids()
