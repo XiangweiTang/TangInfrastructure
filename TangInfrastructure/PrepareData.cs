@@ -25,21 +25,24 @@ namespace TangInfrastructure
             var train = sd.Train;
             PrintData("dev", dev);
             PrintData("test", test);
-            PrintData("train", train, true);
+            PrintData("train", train);
+            PrepareDict(Cfg.SrcLocale, Cfg.SrcVocabSize);
+            PrepareDict(Cfg.TgtLocale, Cfg.TgtVocabSize);
         }
 
-        private void PrintData(string type, IEnumerable<Tuple<string,string>> list, bool createDict=false)
+        private void PrepareDict(string ext, int maxVocab)
+        {
+            List<string> head = new List<string> { "<unk>", "<s>", "</s>" };
+            string inputPath = Path.Combine(Cfg.NmtModelWorkFolder, "train." + ext);
+            string outputPath = Path.Combine(Cfg.NmtModelWorkFolder, "vocab." + ext);
+            Common.BuildVocab(inputPath, maxVocab, outputPath, head);
+        }
+
+        private void PrintData(string type, IEnumerable<Tuple<string,string>> list)
         {
             string srcPath = Path.Combine(Cfg.NmtModelWorkFolder, type + "." + Cfg.SrcLocale);
             string tgtPath = Path.Combine(Cfg.NmtModelWorkFolder, type + "." + Cfg.TgtLocale);
             Common.WritePairFiles(srcPath, tgtPath, list.Select(x => CleanupPairs(x)));
-            if (createDict)
-            {
-                string srcDictPath = Path.Combine(Cfg.NmtModelWorkFolder, "vocab." + Cfg.SrcLocale);
-                string tgtDictPath = Path.Combine(Cfg.NmtModelWorkFolder, "vocab." + Cfg.TgtLocale);
-                PrepareDict(srcPath, Cfg.SrcVocabSize, srcDictPath);
-                PrepareDict(tgtPath, Cfg.TgtVocabSize, tgtDictPath);
-            }
         }
 
         private Tuple<string,string> CleanupPairs(Tuple<string,string> pair)
@@ -59,22 +62,7 @@ namespace TangInfrastructure
                 var tgtList = File.ReadLines(tgtFilePath);
                 yield return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y));
             }
-        }
-
-        public static void PrepareDict(string filePath, int vocabSize, string outputPath)
-        {
-            var head = Common.ToCollection("<unk>", "<s>", "</s>");
-            var tail = File.ReadLines(filePath).SelectMany(x => x.Split(' '))
-                .GroupBy(x => x)
-                .OrderByDescending(x => x.Count())
-                .Select(x => x.Key)
-                .Where(x => !string.IsNullOrWhiteSpace(x));
-
-            var list = head.Concat(tail).Take(vocabSize).ToList();
-            File.WriteAllLines(outputPath, list);
-        }
-
-        
+        }        
     }
     class PairEquality : IEqualityComparer<Tuple<string, string>>
     {
