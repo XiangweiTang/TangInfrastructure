@@ -165,35 +165,7 @@ namespace TangInfrastructure
             proc.Start();
             proc.WaitForExit();
         }
-
-        public static string CleanupSyl(string s)
-        {
-            return string.Join(" ", s.Split(Sep, StringSplitOptions.RemoveEmptyEntries).Where(x => !x.Contains("sil") && x != "xx" && x != "x" && x != "xxx"));
-        }
-
-        public static string CleanupTrans(string s)
-        {
-            return new string(s.Where(x => x >= '一' && x <= '龟').ToArray());
-        }
-        public static IEnumerable<object> SplitWords(string s)
-        {
-            if (s.Contains('儿'))
-            {
-                int index = s.IndexOf('儿');
-                int pre = index - 1;
-                for (int i = 0; i < pre; i++)
-                    yield return s[i];
-                yield return s.Substring(pre, 2);
-                for (int i = index + 1; i < s.Length; i++)
-                {
-                    yield return s[i];
-                }
-            }
-            else
-                foreach (char c in s)
-                    yield return c;
-        }
-
+        
         public static void ArrayPlace<T>(this T[] bigArray, T[] smallArray, int index)
         {
             Sanity.Requires(index >= 0, "Index cannot be less than 0.");
@@ -201,13 +173,18 @@ namespace TangInfrastructure
             Array.Copy(smallArray, 0, bigArray, index, smallArray.Length);
         }
 
-        public static void Decompress(string inputFilepath, string outputFilePath)
+        public static void Decompress(string inputFilepath, string outputFilePath, bool overwrite=true)
         {
+            if (File.Exists(outputFilePath))
+            {
+                if (overwrite)
+                    File.Delete(outputFilePath);
+                else
+                    return;
+            }
             bool exceptionFlag = false;
             try
             {
-                if (File.Exists(outputFilePath))
-                    File.Delete(outputFilePath);
                 FileInfo inputFile = new FileInfo(inputFilepath);
                 using (FileStream inputFs = inputFile.OpenRead())
                 {
@@ -278,7 +255,7 @@ namespace TangInfrastructure
             }
         }
 
-        public static IEnumerable<T> ToCollection<T>(params T[] items)
+        public static T[] ToCollection<T>(params T[] items)
         {
             return items;
         }
@@ -325,7 +302,8 @@ namespace TangInfrastructure
             }
         }
 
-        public static void FolderTransport(string inputFolderPath, string outputFolderPath, Func<string,string,bool> fileTransport, string pattern="*")
+        public delegate void FileTransport(string inputPath, string outputPath);
+        public static void FolderTransport(string inputFolderPath, string outputFolderPath, FileTransport fileTransport, string pattern="*")
         {
             Parallel.ForEach(Directory.EnumerateFiles(inputFolderPath, pattern), new ParallelOptions { MaxDegreeOfParallelism = 10 }, inputFilePath =>
             {
@@ -343,10 +321,6 @@ namespace TangInfrastructure
                  .ToDictionary(x => x[2], x => x[0]);
         }
 
-        public static Func<string, bool> ValidEmpty = x =>
-         {
-             return !string.IsNullOrWhiteSpace(x);
-         };
 
         public static void PrintData(IEnumerable<Tuple<string,string>> sntPair, string folder, string type, string srcPattern, string tgtPattern)
         {
@@ -379,6 +353,24 @@ namespace TangInfrastructure
             var srcList = File.ReadLines(srcPath);
             var tgtList = File.ReadLines(tgtPath);
             return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y));
+        }
+
+        public static void RemoveTagsFromFile(string tagPath, string cleanPath)
+        {
+            var list = File.ReadLines(tagPath).Select(x => StringProcess.CleanupTag(x));
+            File.WriteAllLines(cleanPath, list);
+        }
+
+        public static string CreateTrainArgs(string srcLocale, string tgtLocale, string workFolder, int trainSteps)
+        {
+            return $"-m nmt.nmt --src={srcLocale} --tgt={tgtLocale} --vocab_prefix={workFolder}\\vocab "
+             + $"--train_prefix={workFolder}\\train --dev_prefix={workFolder}\\dev --test_prefix={workFolder}\\test "
+             + $"--out_dir={workFolder} --num_train_steps={trainSteps} --steps_per_stats=100 --num_layers=2 --num_units=128 --dropout=0.2 --metrics=bleu";
+        }
+
+        public static string CreateTestArgs(string workFolder, string inputPath, string outputPath)
+        {
+            return $"-m nmt.nmt --out_dir={workFolder} --inference_input_file={inputPath} --inference_output_file={outputPath}";
         }
     }
 }

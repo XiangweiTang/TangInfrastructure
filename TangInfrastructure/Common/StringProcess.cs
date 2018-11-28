@@ -159,14 +159,18 @@ namespace TangInfrastructure
              return x >= '0' && x <= '9';
          };
 
-        public static string MatchString(string withTagString, string noTagString)
+        public static Func<string, bool> ValidEmpty = x =>
+        {
+            return !string.IsNullOrWhiteSpace(x);
+        };
+        public static string MatchTagToString(string withTagString, string noTagString)
         {
             var withTagList = withTagString.Split(' ');
             var noTagList = noTagString.Split(' ');
             // length mismatch.
-            if (noTagList.Length * 2 < withTagList.Length || withTagList.Length * 2 < noTagList.Length)
-                return "";
-            var tagIndices = withTagList.Select((x, y) => new { isTag = x != "<unk>" && OnlyTagReg.IsMatch(x), index = y })
+            //if (noTagList.Length * 2 < withTagList.Length || withTagList.Length * 2 < noTagList.Length)
+            //    return "";
+            var tagIndices = withTagList.Select((x, y) => new { isTag = x != Constants.UNK && OnlyTagReg.IsMatch(x), index = y })
                 .Where(x => x.isTag && x.index > 0).ToArray();
             var preTagWords = tagIndices.Select(x => withTagList[x.index - 1]).ToArray();
             // Words mismatch.
