@@ -37,5 +37,13 @@ namespace TangInfrastructure
             PrepareData.CreateBatchCommand(Cfg.SrcLocale, Cfg.TgtLocale, cleanFolder, Cfg.TrainSteps);
             PrepareData.CreateBatchCommand(Cfg.SrcLocale, Cfg.TgtLocale, randomFolder, Cfg.TrainSteps);
         }
+
+        private void PrepareOpusData()
+        {
+            Opus opus = new Opus(Cfg);
+            Opus.DecompressXmls();
+            Opus.XmlToTc();
+            Opus.MatchPairFiles();
+        }
     }
 }
