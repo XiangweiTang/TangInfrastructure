@@ -24,7 +24,7 @@ namespace TangInfrastructure
         public List<TextGridInterval> CcList => ItemDict["CC"].Cast<TextGridInterval>().ToList();
         public List<TextGridInterval> IfList => ItemDict["IF"].Cast<TextGridInterval>().ToList();
         public List<TextGridPoint> BiList => ItemDict["BI"].Cast<TextGridPoint>().ToList();
-        public List<TextGridInterval> StList => ItemDict["ST"].Cast<TextGridInterval>().ToList();
+        public List<TextGridInterval> StList => ItemDict["ST"].Cast<TextGridInterval>().ToList();        
         public bool RunRebuild = true;
         public TextGrid(string path)
         {
@@ -41,6 +41,11 @@ namespace TangInfrastructure
         {
             var list = _ReBuild().SelectMany(x => x);
             File.WriteAllLines(outputPath, list);
+        }
+
+        public void InsertBiToCc(string outputPath)
+        {
+            File.WriteAllLines(outputPath, InsertBiToCc());
         }
 
         public IEnumerable<string> InsertBiToCc()
@@ -61,11 +66,17 @@ namespace TangInfrastructure
                 {
                     var newList = suffixFlag ? IntervalTransform(ReorgString(sentence), sylList) : IntervalTransform(sentence, sylList);
                     var merged = Point.InsertPoint(newList.ToList(), biList);
-                    yield return string.Join(" ", merged);                    
+                    string trans = string.Join(" ", merged);
+                    yield return trans;
                 }
             }
         }    
         
+        public void InsertStToCc(string outputPath)
+        {
+            File.WriteAllLines(outputPath, InsertStToCc());
+        }
+
         public IEnumerable<string> InsertStToCc()
         {
             var dict = Interval.CreateContainDict(CcList.Cast<IInterval>().ToList(), SylList.Cast<IInterval>().ToList());
@@ -84,7 +95,9 @@ namespace TangInfrastructure
                 {
                     var newList = suffixFlag ? IntervalTransform(ReorgString(sentence), sylList) : IntervalTransform(sentence, sylList);
                     var merged = Interval.PadIntervals(newList.ToList(), stList);
-                    yield return string.Join(" ", merged);
+                    
+                    string trans= string.Join(" ", merged);
+                    yield return trans;
                 }
             }
         }
@@ -99,7 +112,7 @@ namespace TangInfrastructure
 
         private IEnumerable<string> ReorgString(string snt)
         {
-            char c = '\u0000';
+            char c;
             if (snt.Contains('儿'))
                 c = '儿';
             else if (snt.Contains('呃'))
@@ -227,8 +240,10 @@ namespace TangInfrastructure
         {
             foreach(TextGridItem tgi in ItemDict["CC"])
             {
-                string text = StringProcess.CleanupCcString(tgi.Text);
-                tgi.UpdateText(text);
+                string tagText = StringProcess.NormXSil(tgi.Text);
+                string overlapText = StringProcess.NormOverlap(tagText);
+                string cleanText = StringProcess.CleanupChsString(overlapText, true);
+                tgi.UpdateText(cleanText);
             }
         }
 
@@ -236,9 +251,15 @@ namespace TangInfrastructure
         {
             foreach(TextGridItem tgi in ItemDict["SYL"])
             {
-                string text = StringProcess.TaggingXSil(tgi.Text);
-                string cleanText = StringProcess.CleanupSyl(text);
-                tgi.UpdateText(cleanText);
+                if (tgi.Text.Contains('/') || tgi.Text.Contains('\\'))
+                    tgi.UpdateText("<overlap>");
+                else
+                {
+                    string tagText = StringProcess.NormXSil(tgi.Text);
+                    string cleanText = StringProcess.CleanupSpace(tagText);
+                    tgi.UpdateText(cleanText);
+                }
+
             }
         }
 

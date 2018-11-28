@@ -19,7 +19,6 @@ namespace TangInfrastructure
 
         #region Match pairs and split.
 
-
         public static void MatchPairFiles()
         {
             var list = Cfg.UsedCorpora.SelectMany(x => MatchPairFilesByCorpus(x));
@@ -31,48 +30,16 @@ namespace TangInfrastructure
             string matchPath = Path.Combine(Cfg.OpusDataRootFolder, corpus, Cfg.MatchFileName);
             return File.ReadLines(matchPath).SelectMany(x => MatchPairFiles(x));
         }
+
         private static IEnumerable<Tuple<string,string>> MatchPairFiles(string pathLine)
         {
             string srcFilePath = pathLine.Split('\t')[1];
             string tgtFilePath = pathLine.Split('\t')[3];
             Console.WriteLine("Processing " + srcFilePath);
-            var srcList = File.ReadLines(srcFilePath).Select(x => new TcLine(x).Transcription).Select(CleanupEnuString);            
-            var tgtList = File.ReadLines(tgtFilePath).Select(x => new TcLine(x).Transcription).Select(CleanupChsString);
+            var srcList = File.ReadLines(srcFilePath).Select(x => new TcLine(x).Transcription).Select(x => StringProcess.CleanupEnuString(x));
+            var tgtList = File.ReadLines(tgtFilePath).Select(x => new TcLine(x).Transcription).Select(x => StringProcess.CleanupChsString(x));
             return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y)).Where(ValidPair);
         }
-        #endregion
-
-        #region Clean string.
-        private static Func<string, string> CleanupChsString = x =>
-         {
-             string charValid = new string(x.ToLower().Where(ValidOpusChs).ToArray());
-             string spaceValid = StringProcess.CleanupSpace(charValid);
-             string gbk = StringProcess.BigToGbk(spaceValid);
-             return gbk;
-         };
-
-        private static Func<string, bool> ValidOpusChsString = x =>
-         {
-             return x.All(ValidOpusChs);
-         };
-
-        private static Func<char, bool> ValidOpusChs = x =>
-         {
-             return StringProcess.ValidChsOnly(x) || x == ' ';
-         };
-
-        private static Func<string, string> CleanupEnuString = x =>
-           {
-               string aposValid = StringProcess.CleanupApos(x.ToLower());
-               string charValid = new string(aposValid.Where(ValidEnu).ToArray());
-               string spaceValid = StringProcess.CleanupSpace(charValid);               
-               return spaceValid;
-           };
-
-        private static Func<char, bool> ValidEnu = x =>
-         {
-             return StringProcess.ValidLowerEnuOnly(x) || StringProcess.ValidNumOnly(x) || x == '\'' || x == ' ';
-         };
 
         private static Func<Tuple<string, string>, bool> ValidPair = x =>
           {

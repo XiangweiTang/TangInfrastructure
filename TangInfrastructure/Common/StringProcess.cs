@@ -13,14 +13,12 @@ namespace TangInfrastructure
         static Regex OverlapReg = new Regex("\\[[^]]*OV[^]]*]", RegexOptions.Compiled);
         static Regex SpaceReg = new Regex("[\\s]{2,}", RegexOptions.Compiled);
         static Regex IsoAps = new Regex("(^| )'( |$)", RegexOptions.Compiled);
-        static Regex MvAps = new Regex("([a-z]+)' ([a-z]+)", RegexOptions.Compiled);
+        static Regex MoveAps = new Regex("([a-z]+)' ([a-z]+)", RegexOptions.Compiled);
         static Regex XReg = new Regex("[x]{2,3}|\\bx\\b", RegexOptions.Compiled);
         static Regex SilReg = new Regex("(sil[a-z_]*)|([*]+)|(si_[a-z]*)", RegexOptions.Compiled);
         static Regex ContainsTagReg = new Regex("<[^>]*>", RegexOptions.Compiled);
         static Regex OnlyTagReg = new Regex("^\\s*<[^>]*>\\s*$", RegexOptions.Compiled);
-        static Regex SylCleanReg = new Regex("\\?|:|？|：|\\/|\\(|\\)", RegexOptions.Compiled);
-        static Regex ExCleanReg = new Regex("[!]+", RegexOptions.Compiled);
-        static Regex QueCleanReg = new Regex("[?]+", RegexOptions.Compiled);
+        static char[] Sep = { ' ' };
 
         public static string CleanupTag(string s)
         {
@@ -29,36 +27,38 @@ namespace TangInfrastructure
             return noSpace;
         }
 
-        public static string TaggingXSil(string inputString)
+        public static string NormXSil(string inputString)
         {
-            string xNorm = XReg.Replace(inputString.ToLower(), "<xx>");
-            string silNorm = SilReg.Replace(xNorm, "<sil>");
+            string xNorm = XReg.Replace(inputString.ToLower(), " <xx> ");
+            string silNorm = SilReg.Replace(xNorm, " <sil> ");
             return silNorm;
         }
 
-        public static string CleanupSyl(string inputString)
+        public static string NormOverlap(string inputString)
         {
-            if (inputString.Contains('/') || inputString.Contains('\\'))
-                return "<overlap>";
-            string sepTag = ContainsTagReg.Replace(inputString, " $0 ");
-            string charClean = SylCleanReg.Replace(sepTag, " ");
-            string spaceClean = SpaceReg.Replace(charClean, " ").Trim();
-            return spaceClean;
-        }        
-
-        public static string CleanupCcString(string inputString)
-        {
-            string removeOverlap = OverlapReg.Replace(inputString, "<overlap>");
-            string clean = CleanupChsString(removeOverlap, true);
-            return clean;
+            return OverlapReg.Replace(inputString, " <overlap> ");
         }
 
         public static string CleanupChsString(string chsString, bool keepTag = false)
         {
-            string charClean = keepTag ? CleanupChsCharKeepTag(chsString.ToLower(),ValidChs) : CleanupChsChar(chsString.ToLower());
+            string charClean = string.Join(" ", CleanupChsStringParts(chsString, keepTag));
             string gbk = BigToGbk(charClean);
             string spaceClean = CleanupSpace(gbk);
             return spaceClean;
+        }
+
+        private static IEnumerable<string> CleanupChsStringParts(string chsString,bool keepTag = false)
+        {
+            var list = chsString.Split(Sep, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string word in list)
+            {
+                if (keepTag && IsTag(word))
+                    yield return word;
+                else
+                {
+                    yield return CleanupChsChar(word);
+                }
+            }
         }
 
         public static string CleanupEnuString(string enuString, bool keepTag=false)
@@ -71,7 +71,7 @@ namespace TangInfrastructure
 
         public static string CleanupApos(string inputString)
         {            
-            string move = MvAps.Replace(inputString, "$1 '$2");
+            string move = MoveAps.Replace(inputString, "$1 '$2");
             string removeIso = IsoAps.Replace(move, " ");
             return removeIso;
         }
@@ -79,33 +79,6 @@ namespace TangInfrastructure
         public static string CleanupSpace(string inputString)
         {
             return SpaceReg.Replace(inputString, " ").Trim();
-        }
-
-        public static string CleanupChsCharKeepTag(string inputString, Func<char,bool> validFunc)
-        {
-            string tagString = TaggingXSil(inputString);
-            return new string(FilterCharKeepTag(tagString, validFunc).ToArray());
-        }
-
-        private static IEnumerable<char> FilterCharKeepTag(string inputString, Func<char, bool> valid)
-        {
-            bool inTag = false;
-            foreach(char c in inputString)
-            {
-                if (c == '<')
-                    inTag = true;
-                if (inTag)
-                {
-                    yield return c;
-                    if (c == '>')
-                        inTag = false;
-                }
-                else
-                {
-                    if (valid(c))
-                        yield return c;
-                }
-            }
         }
 
         public static string CleanupChsChar(string chsString)
@@ -131,13 +104,6 @@ namespace TangInfrastructure
            {
                return (x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || (x >= '0' && x <= '9') || x == '\'' || x == ' ';
            };
-
-        public static Func<string, string> CleanupQueEx = x =>
-         {
-             string queClean = QueCleanReg.Replace(x, " ? ");
-             string exClean = ExCleanReg.Replace(queClean, " ! ");
-             return exClean;
-         };
         public static Func<string, bool> IsTag = x =>
          {
              return OnlyTagReg.IsMatch(x);
@@ -158,10 +124,6 @@ namespace TangInfrastructure
          {
              return x >= '0' && x <= '9';
          };
-        public static Func<string, bool> ValidEmpty = x =>
-        {
-            return !string.IsNullOrWhiteSpace(x);
-        };
         public static string MatchTagToString(string withTagString, string noTagString)
         {
             var withTagList = withTagString.Split(' ');
