@@ -23,38 +23,7 @@ namespace TangInfrastructure
         public static void MatchPairFiles()
         {
             var list = Cfg.UsedCorpora.SelectMany(x => MatchPairFilesByCorpus(x));
-            var split = new SplitData<Tuple<string, string>>(list, 5000, 5000);
-
-            PrintData("dev", split.Dev);
-            PrintData("test", split.Test);
-            PrintData("train", split.Train, true);
-        }
-
-        private static void PrintData(string type, IEnumerable<Tuple<string,string>> list, bool createDict = false)
-        {
-            string srcPath = Path.Combine(Cfg.WorkFolder, type + "." + Cfg.SrcLocale);
-            string tgtPath = Path.Combine(Cfg.WorkFolder, type + "." + Cfg.TgtLocale);
-            Common.WritePairFiles(srcPath, tgtPath, list);
-            if (createDict)
-            {
-                string srcDictPath = Path.Combine(Cfg.WorkFolder, "vocab." + Cfg.SrcLocale);
-                string tgtDictPath = Path.Combine(Cfg.WorkFolder, "vocab." + Cfg.TgtLocale);
-                PrepareDict(srcPath, Cfg.SrcVocabSize, srcDictPath);
-                PrepareDict(tgtPath, Cfg.TgtVocabSize, tgtDictPath);
-            }
-        }
-
-        public static void PrepareDict(string inputPath, int vocabSize, string outputPath)
-        {
-            var head = Common.ToCollection("<unk>", "<s>", "</s>");
-            var tail = File.ReadLines(inputPath).SelectMany(x => x.Split(' '))
-                .GroupBy(x => x)
-                .OrderByDescending(x => x.Count())
-                .Select(x => x.Key)
-                .Where(StringProcess.ValidEmpty);
-
-            var list = head.Concat(tail).Take(vocabSize);
-            File.WriteAllLines(outputPath, list);
+            PrepareData.SplitPairData(list, Cfg.WorkFolder, Cfg.SrcLocale, Cfg.TgtLocale, Cfg.SrcVocabSize, Cfg.TgtVocabSize, 5000, 5000, true);
         }
 
         private static IEnumerable<Tuple<string,string>> MatchPairFilesByCorpus(string corpus)
@@ -69,30 +38,33 @@ namespace TangInfrastructure
             Console.WriteLine("Processing " + srcFilePath);
             var srcList = File.ReadLines(srcFilePath).Select(x => new TcLine(x).Transcription).Select(CleanupEnuString);            
             var tgtList = File.ReadLines(tgtFilePath).Select(x => new TcLine(x).Transcription).Select(CleanupChsString);
-            return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y)).Where(x => ValidChsString(x.Item2)).Where(ValidPair);
+            return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y)).Where(ValidPair);
         }
         #endregion
 
         #region Clean string.
         private static Func<string, string> CleanupChsString = x =>
          {
-             string charValid = new string(x.ToLower().Where(ValidChs).ToArray());
-             //string queExValid = StringCleanup.CleanupQueEx(charValid);
+             string charValid = new string(x.ToLower().Where(ValidOpusChs).ToArray());
              string spaceValid = StringProcess.CleanupSpace(charValid);
              string gbk = StringProcess.BigToGbk(spaceValid);
              return gbk;
          };
 
-        private static Func<char, bool> ValidChs = x =>
+        private static Func<string, bool> ValidOpusChsString = x =>
          {
-             return StringProcess.ValidChsOnly(x) || StringProcess.ValidLowerEnuOnly(x) || StringProcess.ValidNumOnly(x) || x == ' ';
+             return x.All(ValidOpusChs);
+         };
+
+        private static Func<char, bool> ValidOpusChs = x =>
+         {
+             return StringProcess.ValidChsOnly(x) || x == ' ';
          };
 
         private static Func<string, string> CleanupEnuString = x =>
            {
                string aposValid = StringProcess.CleanupApos(x.ToLower());
                string charValid = new string(aposValid.Where(ValidEnu).ToArray());
-               //string queExValid = StringCleanup.CleanupQueEx(charValid);
                string spaceValid = StringProcess.CleanupSpace(charValid);               
                return spaceValid;
            };
@@ -102,17 +74,14 @@ namespace TangInfrastructure
              return StringProcess.ValidLowerEnuOnly(x) || StringProcess.ValidNumOnly(x) || x == '\'' || x == ' ';
          };
 
-        private static Func<string, bool> ValidChsString = x =>
-         {
-             return x.All(y => StringProcess.ValidChsOnly(y) || y == ' ');
-         };
-
         private static Func<Tuple<string, string>, bool> ValidPair = x =>
           {
               int srcLength = x.Item1.Split(' ').Length;
               int tgtLength = x.Item2.Split(' ').Length;
-              bool r= Constants.CHS_ENU_RATIO * tgtLength * Constants.LENGTH_RATIO >= srcLength
+              bool r = srcLength > 0 && tgtLength > 0
+              && Constants.CHS_ENU_RATIO * tgtLength * Constants.LENGTH_RATIO >= srcLength
               && Constants.CHS_ENU_RATIO * tgtLength <= srcLength * Constants.LENGTH_RATIO;
+              
               return r;
           };
         #endregion
@@ -248,15 +217,11 @@ namespace TangInfrastructure
             {
                 string corpusPath = Path.Combine(Cfg.OpusDataRootFolder, usedCorpus, "xml");
                 Parallel.ForEach(Directory.EnumerateFiles(corpusPath, "*.gz", SearchOption.AllDirectories), new ParallelOptions { MaxDegreeOfParallelism = 10 }, inputGzPath =>
-                   {
-                       DecompressXml(inputGzPath);
-                   });
+                {
+                    string outputXmlPath = inputGzPath.ToLower().Replace(".gz", string.Empty);
+                    Common.Decompress(inputGzPath, outputXmlPath);
+                });
             }
-        }
-        private static void DecompressXml(string inputGzPath)
-        {
-            string outputXmlPath = inputGzPath.ToLower().Replace(".gz", string.Empty);
-            Common.Decompress(inputGzPath, outputXmlPath);
         }
         #endregion
     }

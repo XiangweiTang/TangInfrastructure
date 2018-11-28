@@ -158,7 +158,6 @@ namespace TangInfrastructure
          {
              return x >= '0' && x <= '9';
          };
-
         public static Func<string, bool> ValidEmpty = x =>
         {
             return !string.IsNullOrWhiteSpace(x);
