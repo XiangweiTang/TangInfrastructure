@@ -48,15 +48,13 @@
     <Compile Include="Common\Med.cs" />
     <Compile Include="Common\Opus.cs" />
     <Compile Include="Common\Point.cs" />
+    <Compile Include="Common\PrepareData.cs" />
     <Compile Include="Common\SplitData.cs" />
     <Compile Include="Common\TextGrid.cs" />
     <Compile Include="Common\Wave.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Common\Interval.cs" />
     <Compile Include="Line.cs" />
-    <Compile Include="OpusProcessing.cs" />
-    <Compile Include="PrepareData.cs" />
-    <Compile Include="PrepareTagData.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RunNmt.cs" />

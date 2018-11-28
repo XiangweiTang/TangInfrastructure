@@ -12,12 +12,11 @@ namespace TangInfrastructure
     {
         public string OpusDataRootFolder { get; private set; } = @"D:\XiangweiTang\Data\Opus";
         public string ParallelDataFolder { get; private set; } = @"D:\XiangweiTang\Data\OpusPair\";
-        public string NmtModelWorkFolder { get; private set; } = @"D:\tmp\DeepMatchWithTag";
-        public string SrcLocale { get; private set; } = "en";
+        public string WorkFolder { get; private set; } = @"D:\tmp\DeepMatchWithTag";
+        public string SrcLocale { get; private set; } = "zh";
         public int SrcVocabSize { get; private set; } = 10000;
-        public string TgtLocale { get; private set; } = "zh";
+        public string TgtLocale { get; private set; } = "en";
         public int TgtVocabSize { get; private set; } = 10000;
-        public bool ReverseOnTrain { get; private set; } = true;
         public string PythonPath { get; private set; } = @"C:\Users\tangx\AppData\Local\Programs\Python\Python36\python.exe";
         public string CmdPath { get; private set; } = string.Empty;
         public string PowerShellPath { get; private set; } = string.Empty;        
@@ -36,12 +35,8 @@ namespace TangInfrastructure
          * --out_dir=D:\tmp\nmt_model 
          * --num_train_steps=12000 --steps_per_stats=100 --num_layers=2 --num_units=128 --dropout=0.2 --metrics=bleu
          */
-        private string TrainSrc => ReverseOnTrain ? TgtLocale : SrcLocale;
-        private string TrainTgt => ReverseOnTrain ? SrcLocale : TgtLocale;
-        public string TrainNmtCommand => $"-m nmt.nmt --src={TrainSrc} --tgt={TrainTgt} --vocab_prefix={NmtModelWorkFolder}\\vocab "
-            + $"--train_prefix={NmtModelWorkFolder}\\train --dev_prefix={NmtModelWorkFolder}\\dev --test_prefix={NmtModelWorkFolder}\\test "
-            + $"--out_dir={NmtModelWorkFolder} --num_train_steps={TrainSteps} --steps_per_stats=100 --num_layers=2 --num_units=128 --dropout=0.2 --metrics=bleu";
-        public string TestNmtCommand => $"-m nmt.nmt --out_dir={NmtModelWorkFolder} --inference_input_file={TestInputPath} --inference_output_file={TestOutputPath}";
+        public string TrainNmtCommand => Common.CreateTrainArgs(SrcLocale, TgtLocale, WorkFolder, TrainSteps);
+        public string TestNmtCommand => Common.CreateTestArgs(WorkFolder, TestInputPath, TestOutputPath);
         public string MatchFileName => "matching.txt";
 
         XmlNode CommonNode;
@@ -56,7 +51,7 @@ namespace TangInfrastructure
                 XDoc.Load(xReader);
                 CommonNode = XDoc["Root"]["Common"];
                 LoadCommonNode();
-                NmtModelWorkFolder = XDoc["Root"]["Nmt"]["WorkFolder"].Attributes["Path"].Value;
+                WorkFolder = XDoc["Root"]["Nmt"]["WorkFolder"].Attributes["Path"].Value;
             }            
         }
 

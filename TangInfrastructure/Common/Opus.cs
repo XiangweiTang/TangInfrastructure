@@ -32,13 +32,13 @@ namespace TangInfrastructure
 
         private static void PrintData(string type, IEnumerable<Tuple<string,string>> list, bool createDict = false)
         {
-            string srcPath = Path.Combine(Cfg.NmtModelWorkFolder, type + "." + Cfg.SrcLocale);
-            string tgtPath = Path.Combine(Cfg.NmtModelWorkFolder, type + "." + Cfg.TgtLocale);
+            string srcPath = Path.Combine(Cfg.WorkFolder, type + "." + Cfg.SrcLocale);
+            string tgtPath = Path.Combine(Cfg.WorkFolder, type + "." + Cfg.TgtLocale);
             Common.WritePairFiles(srcPath, tgtPath, list);
             if (createDict)
             {
-                string srcDictPath = Path.Combine(Cfg.NmtModelWorkFolder, "vocab." + Cfg.SrcLocale);
-                string tgtDictPath = Path.Combine(Cfg.NmtModelWorkFolder, "vocab." + Cfg.TgtLocale);
+                string srcDictPath = Path.Combine(Cfg.WorkFolder, "vocab." + Cfg.SrcLocale);
+                string tgtDictPath = Path.Combine(Cfg.WorkFolder, "vocab." + Cfg.TgtLocale);
                 PrepareDict(srcPath, Cfg.SrcVocabSize, srcDictPath);
                 PrepareDict(tgtPath, Cfg.TgtVocabSize, tgtDictPath);
             }
@@ -51,7 +51,7 @@ namespace TangInfrastructure
                 .GroupBy(x => x)
                 .OrderByDescending(x => x.Count())
                 .Select(x => x.Key)
-                .Where(Common.ValidEmpty);
+                .Where(StringProcess.ValidEmpty);
 
             var list = head.Concat(tail).Take(vocabSize);
             File.WriteAllLines(outputPath, list);
@@ -153,8 +153,8 @@ namespace TangInfrastructure
             string toXmlPath = Path.Combine(Cfg.OpusDataRootFolder, corpus, "xml", toDocSubPath).ToLower().Replace(".gz", string.Empty);
             string toDocFileName = toDocSubPath.Split('/').Last().Split('.')[0];
 
-            string fromTcFolder = Path.Combine(Cfg.OpusDataRootFolder, corpus, "Tc", Cfg.SrcLocale, sessionId);
-            string toTcFolder = Path.Combine(Cfg.OpusDataRootFolder, corpus, "Tc", Cfg.TgtLocale, sessionId);
+            string fromTcFolder = Path.Combine(Cfg.OpusDataRootFolder, corpus, "Tc", Cfg.TgtLocale, sessionId);
+            string toTcFolder = Path.Combine(Cfg.OpusDataRootFolder, corpus, "Tc", Cfg.SrcLocale, sessionId);
             Directory.CreateDirectory(fromTcFolder);
             Directory.CreateDirectory(toTcFolder);
 
@@ -200,8 +200,8 @@ namespace TangInfrastructure
                     {
                         var fromSegNodes = fromIds.Select(x => fromDict[x]);
                         var toSegNodes = toIds.Select(x => toDict[x]);
-                        fromLine = CreateTcFromXml(fromSegNodes, Cfg.SrcLocale, corpus, sessionId, i.ToString("000000"));
-                        toLine = CreateTcFromXml(toSegNodes, Cfg.TgtLocale, corpus, sessionId, i.ToString("000000"));
+                        fromLine = CreateTcFromXml(fromSegNodes, Cfg.TgtLocale, corpus, sessionId, i.ToString("000000"));
+                        toLine = CreateTcFromXml(toSegNodes, Cfg.SrcLocale, corpus, sessionId, i.ToString("000000"));
                     }
                 }
                 catch { }
