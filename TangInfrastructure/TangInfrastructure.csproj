@@ -46,20 +46,20 @@
     <Compile Include="Common\Common.cs" />
     <Compile Include="Common\Constants.cs" />
     <Compile Include="Common\Med.cs" />
-    <Compile Include="Common\Opus.cs" />
+    <Compile Include="Features\Opus.cs" />
     <Compile Include="Common\Point.cs" />
-    <Compile Include="Common\PrepareData.cs" />
+    <Compile Include="Features\PrepareData.cs" />
     <Compile Include="Common\SplitData.cs" />
-    <Compile Include="Common\TextGrid.cs" />
+    <Compile Include="Features\TextGrid.cs" />
     <Compile Include="Common\Wave.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Common\Interval.cs" />
-    <Compile Include="Line.cs" />
+    <Compile Include="Common\Line.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RunNmt.cs" />
-    <Compile Include="Sanity.cs" />
-    <Compile Include="SubtitleMatch.cs" />
+    <Compile Include="Features\RunNmt.cs" />
+    <Compile Include="Common\Sanity.cs" />
+    <Compile Include="Features\SubtitleMatch.cs" />
     <Compile Include="Common\StringProcess.cs" />
     <Compile Include="Test.cs" />
   </ItemGroup>

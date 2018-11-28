@@ -12,6 +12,7 @@ namespace TangInfrastructure
         private static List<string> Head = new List<string> { Constants.UNK, Constants.S_START, Constants.S_END };
 
         private static double TagRatio = 0.3;
+        private static string Tag = Constants.BI_TAG;
 
         private static Random Rand = new Random();
 
@@ -77,7 +78,7 @@ namespace TangInfrastructure
                 list.GroupBy(x => x)
                 .OrderByDescending(x => x.Count())
                 .Select(x => x.Key)
-                .Where(StringProcess.ValidEmpty)).Take(maxVocab);
+                .Where(x => !string.IsNullOrWhiteSpace(x))).Take(maxVocab);
 
             File.WriteAllLines(outputVocabpath, vocab);
         }
@@ -108,6 +109,11 @@ namespace TangInfrastructure
             }
 
             TagRatio = 1.0 * tag / total;
+        }
+
+        public static void SetTag(string tag)
+        {
+            Tag = tag;
         }
 
         public static void FromCleanToRandomTag(string cleanFolder, string randomTagFolder, string tagExt, string otherExt)
@@ -141,7 +147,7 @@ namespace TangInfrastructure
             {
                 yield return word;
                 if (Rand.NextDouble() < TagRatio)
-                    yield return Constants.BI_TAG;
+                    yield return Tag;
             }
         }
 
