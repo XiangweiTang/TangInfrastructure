@@ -115,7 +115,7 @@ namespace TangInfrastructure
                 
         public static string BigToGbk(string bigString)
         {
-            return new string(bigString.Select(x =>Common. BigToGbkDict.ContainsKey(x) ?Common. BigToGbkDict[x] : x).ToArray());
+            return new string(bigString.Select(x => Common.BigToGbkDict.ContainsKey(x) ? Common.BigToGbkDict[x] : x).ToArray());
         }        
 
         public static string CleanupEnuChar(string enuString)
@@ -125,7 +125,7 @@ namespace TangInfrastructure
         
         private static Func<char, bool> ValidChs = x =>
           {
-              return (x >= '一' && x <= '龟');// || (x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || (x >= '0' && x <= '9') || x == ' ';
+              return (x >= '一' && x <= '龟') || (x == ' ');
           };
         private static Func<char, bool> ValidEnu = x =>
            {
@@ -173,6 +173,8 @@ namespace TangInfrastructure
             if (!Common.SequentialContains(noTagList, preTagWords))
                 return "";
             var list = Common.SequentialMatch(noTagList, preTagWords).Reverse().ToList();
+            if (list.Count == 0)
+                return "";
             for (int i = 0; i < list.Count; i++)
             {
                 noTagList[list[i]] = noTagList[list[i]] + " " + withTagList[tagIndices[i].index];

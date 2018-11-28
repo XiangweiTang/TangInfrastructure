@@ -56,6 +56,7 @@
     <Compile Include="Line.cs" />
     <Compile Include="OpusProcessing.cs" />
     <Compile Include="PrepareData.cs" />
+    <Compile Include="PrepareTagData.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RunNmt.cs" />
@@ -71,8 +72,6 @@
     <Content Include="Config.xml" />
     <EmbeddedResource Include="Data\GBK_BIG.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Features\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
