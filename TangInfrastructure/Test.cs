@@ -18,6 +18,9 @@ namespace TangInfrastructure
         Regex Tags = new Regex("<[^>]*>", RegexOptions.Compiled);
         public Test(string[] args)
         {
+            string cleanFolder = @"D:\XiangweiTang\在职毕业设计\TrainArchive\NN";
+            string randomFolder = @"D:\tmp\Compare\random";
+            PrepareData.FromCleanToRandomTag(cleanFolder, randomFolder, "zh", "en");
         }
 
         private void PrepareExpSetFromRawTags(string beforeTagPath, string afterTagPath, string enuPath, string allFolder, string expRootFolder)

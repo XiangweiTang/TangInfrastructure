@@ -260,6 +260,32 @@ namespace TangInfrastructure
             return items;
         }
 
+        public static bool SequentialContains<T>(IEnumerable<T> bigCollection, IEnumerable<T> smallCollection, Dictionary<T,T> dict)
+        {
+            var smallArray = smallCollection.ToArray();
+            int smallIndex = 0;
+            foreach (T bigT in bigCollection)
+            {
+                if (smallIndex >= smallArray.Length)
+                    return true;
+                for (int i = smallIndex; i < smallArray.Length; i++)
+                {
+                    var smallT = smallArray[smallIndex];
+                    if (bigT.Equals(smallT))
+                    {
+                        smallIndex = i + 1;
+                        break;
+                    }
+                    else if (dict.ContainsKey(smallT) && bigT.Equals(dict[smallT]))
+                    {
+                        smallIndex = i + 1;
+                        break;
+                    }
+                }
+            }
+            return smallIndex >= smallArray.Length;
+        }
+
         public static bool SequentialContains<T>(IEnumerable<T> bigCollection, IEnumerable<T> smallCollection)
         {
             var smallArray = smallCollection.ToArray();
@@ -292,6 +318,36 @@ namespace TangInfrastructure
                 for (int i = smallIndex; i < smallArray.Length; i++)
                 {
                     if (bigT.Equals(smallArray[smallIndex]))
+                    {
+                        yield return bigIndex;
+                        smallIndex = i + 1;
+                        break;
+                    }
+                }
+                bigIndex++;
+            }
+        }
+
+
+        public static IEnumerable<int> SequentialMatch<T>(IEnumerable<T> bigCollection, IEnumerable<T> smallCollection, Dictionary<T,T> dict)
+        {
+            var smallArray = smallCollection.Reverse().ToArray();
+            int smallIndex = 0;
+            int bigIndex = 0;
+            foreach (T bigT in bigCollection.Reverse())
+            {
+                if (smallIndex >= smallArray.Length)
+                    break;
+                for (int i = smallIndex; i < smallArray.Length; i++)
+                {
+                    var smallT = smallArray[smallIndex];
+                    if (bigT.Equals(smallArray[smallIndex]))
+                    {
+                        yield return bigIndex;
+                        smallIndex = i + 1;
+                        break;
+                    }
+                    else if (dict.ContainsKey(smallT) && bigT.Equals(dict[smallT]))
                     {
                         yield return bigIndex;
                         smallIndex = i + 1;

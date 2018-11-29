@@ -147,5 +147,28 @@ namespace TangInfrastructure
 
             return string.Join(" ", noTagList);
         }
+        public static string MatchTagToString(string withTagString, string noTagString, Dictionary<string,string> dict)
+        {
+            var withTagList = withTagString.Split(' ');
+            var noTagList = noTagString.Split(' ');
+            // length mismatch.
+            //if (noTagList.Length * 2 < withTagList.Length || withTagList.Length * 2 < noTagList.Length)
+            //    return "";
+            var tagIndices = withTagList.Select((x, y) => new { isTag = x != Constants.UNK && OnlyTagReg.IsMatch(x), index = y })
+                .Where(x => x.isTag && x.index > 0).ToArray();
+            var preTagWords = tagIndices.Select(x => withTagList[x.index - 1]).ToArray();
+            // Words mismatch.
+            if (!Common.SequentialContains(noTagList, preTagWords,dict))
+                return "";
+            var list = Common.SequentialMatch(noTagList, preTagWords,dict).Reverse().ToList();
+            if (list.Count == 0)
+                return "";
+            for (int i = 0; i < list.Count; i++)
+            {
+                noTagList[list[i]] = noTagList[list[i]] + " " + withTagList[tagIndices[i].index];
+            }
+
+            return string.Join(" ", noTagList);
+        }
     }
 }

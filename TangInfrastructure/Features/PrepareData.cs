@@ -163,6 +163,20 @@ namespace TangInfrastructure
             return new Tuple<string, string>(tagOutputPath, otherOutputPath);
         }
 
+
+        public static Tuple<string, string> CreateAllFiles(string beforeTagPath, string afterTagPath, string nonTagPath, string outputFolder, string tagExt, string otherExt, string dictPath)
+        {
+            var dict = File.ReadLines(dictPath).ToDictionary(x => x.Split('\t')[0], x => x.Split('\t')[1]);
+            var list = File.ReadLines(beforeTagPath)
+                .Zip(File.ReadLines(afterTagPath), (x, y) => StringProcess.MatchTagToString(y, x, dict))
+                .Zip(File.ReadLines(nonTagPath), (x, y) => new Tuple<string, string>(x, y))
+                .Where(x => !string.IsNullOrWhiteSpace(x.Item1));
+            string tagOutputPath = Path.Combine(outputFolder, "all." + tagExt);
+            string otherOutputPath = Path.Combine(outputFolder, "all." + otherExt);
+            Common.WritePairFiles(tagOutputPath, otherOutputPath, list);
+            return new Tuple<string, string>(tagOutputPath, otherOutputPath);
+        }
+
         public static void CreateBatchCommand(string srcLocale, string tgtLocale, string workFolder, int trainSteps)
         {
             string cmd = "python " + Common.CreateTrainArgs(srcLocale, tgtLocale, workFolder, trainSteps);
