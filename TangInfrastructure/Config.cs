@@ -12,7 +12,7 @@ namespace TangInfrastructure
     {
         public string OpusDataRootFolder { get; private set; } = @"D:\XiangweiTang\Data\Opus";
         public string ParallelDataFolder { get; private set; } = @"D:\XiangweiTang\Data\OpusPair\";
-        public string WorkFolder { get; private set; } = @"D:\tmp\RedoTextGridData\BiWbr";
+        public string WorkFolder { get; private set; } = @"D:\tmp\InsertTag\stWord";
         public string SrcLocale { get; private set; } = "sr";
         public int SrcVocabSize { get; private set; } = 3000;
         public string TgtLocale { get; private set; } = "tg";

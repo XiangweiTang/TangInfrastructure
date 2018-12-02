@@ -21,7 +21,7 @@ namespace TangInfrastructure
             string args = Cfg.TrainNmtCommand;
             //Common.RunFile(fileName, args,Cfg.NmtFolder);'
             string path = Path.Combine(Cfg.WorkFolder, "args.txt");
-            File.WriteAllText(path, args);
+            File.WriteAllText(path, "python " + args);
         }
 
         public void RunDemoTest()
