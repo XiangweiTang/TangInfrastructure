@@ -18,8 +18,7 @@ namespace TangInfrastructure
         Regex Tags = new Regex("<[^>]*>", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            RunNmt rn = new RunNmt(Cfg);
-            rn.RunDemoTrain();
+            RefreshTextGridWbr(@"D:\XiangweiTang\Data\Bank\StChar", @"D:\XiangweiTang\Data\Bank\StWord", "<st>");
         }
 
         class Dedupe : IEqualityComparer<string>
@@ -40,19 +39,19 @@ namespace TangInfrastructure
             Directory.CreateDirectory(Cfg.TmpFolder);
         }
 
-        private void RefreshTextGridWbr(string inputFolder, string outputFolder)
+        private void RefreshTextGridWbr(string inputFolder, string outputFolder, string tag)
         {
-            foreach(string cleanPath in Directory.EnumerateFiles(inputFolder, " *.sr"))
+            foreach(string cleanPath in Directory.EnumerateFiles(inputFolder, "*.sr"))
             {
                 string tagPath = cleanPath.Replace(".sr", ".tg");
                 string name = cleanPath.Split('\\').Last().Split('.')[0];
                 string outputCleanPath = Path.Combine(outputFolder, name + ".sr");
                 string outputTagPath = Path.Combine(outputFolder, name + ".tg");
-                RefreshTextGridWbr(cleanPath, tagPath, outputTagPath,outputCleanPath);                
+                RefreshTextGridWbr(cleanPath, tagPath, outputTagPath,outputCleanPath, tag);                
             }
         }
 
-        private void RefreshTextGridWbr(string cleanDatapath, string tagDataPath,string outputPath, string wbrPath)
+        private void RefreshTextGridWbr(string cleanDatapath, string tagDataPath,string outputPath, string wbrPath, string tag)
         {
             string tmpName = Guid.NewGuid().ToString();
             string noEmptyPath = Path.Combine(Cfg.TmpFolder, tmpName + ".noEmpty");
@@ -65,7 +64,7 @@ namespace TangInfrastructure
 
             var tagList = File.ReadLines(tagDataPath).Select(x => StringProcess.GetTagPrefixIndices(x));
             var wbrList = File.ReadLines(wbrPath);
-            var outputList = wbrList.Zip(tagList, (x, y) => StringProcess.InsertTagToWords(x, " <bi> ", y)).Select(x => StringProcess.CleanupSpace(x));
+            var outputList = wbrList.Zip(tagList, (x, y) => StringProcess.InsertTagToWords(x, " " + tag + " ", y)).Select(x => StringProcess.CleanupSpace(x));
             File.WriteAllLines(outputPath, outputList);            
         }
 
