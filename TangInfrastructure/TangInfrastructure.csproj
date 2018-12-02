@@ -46,6 +46,7 @@
     <Compile Include="Common\Common.cs" />
     <Compile Include="Common\Constants.cs" />
     <Compile Include="Common\Med.cs" />
+    <Compile Include="Common\RunWordBreak.cs" />
     <Compile Include="Features\Opus.cs" />
     <Compile Include="Common\Point.cs" />
     <Compile Include="Features\PrepareData.cs" />
@@ -68,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Config.xml" />
+    <Content Include="Data\WordBreak.py" />
     <EmbeddedResource Include="Data\GBK_BIG.txt" />
   </ItemGroup>
   <ItemGroup />

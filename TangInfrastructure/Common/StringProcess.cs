@@ -176,6 +176,19 @@ namespace TangInfrastructure
             return string.Join(" ", SplitWordParts(s));
         }
 
+        public static IEnumerable<int> GetTagPrefixIndices(string s)
+        {
+            var list = SplitWordParts(s);
+            int charIndex = 0;
+            foreach(object word in list)
+            {
+                if (OnlyTagReg.IsMatch(word.ToString()))
+                    yield return charIndex;
+                else
+                    charIndex++;
+            }            
+        }
+
         private static IEnumerable<object> SplitWordParts(string s)
         {
             foreach(string word in s.Split(' '))
@@ -187,6 +200,29 @@ namespace TangInfrastructure
                     foreach (char c in word)
                         yield return c;
                 }
+            }
+        }
+
+        public static string InsertTagToWords(string lineWithSpace, string tag, IEnumerable<int> list)
+        {
+            return string.Join("", InsertTagToWordsParts(lineWithSpace, tag, list.ToArray()));
+        }
+
+        private static IEnumerable<object> InsertTagToWordsParts(string lineWithSpace, string tag, int[] array)
+        {
+            var list = lineWithSpace.Split(' ');
+            int index = 0;
+            int charIndex = 0;
+            foreach(char c in lineWithSpace)
+            {
+                if (index<array.Length&& charIndex == array[index])
+                {
+                    yield return tag;
+                    index++;
+                }
+                yield return c;
+                if (c != ' ')
+                    charIndex++;
             }
         }
     }

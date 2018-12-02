@@ -18,9 +18,63 @@ namespace TangInfrastructure
         Regex Tags = new Regex("<[^>]*>", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            RunNmt rn = new RunNmt(Cfg);
-            rn.RunDemoTrain();
+            Init();
+            RefreshTextGridWbr(@"D:\tmp\RedoTextGridData\Raw", @"D:\tmp\RedoTextGridData\BiWbr");
         }
+
+        private void Init()
+        {
+            Directory.CreateDirectory(Cfg.TmpFolder);
+        }
+
+        private void RefreshTextGridWbr(string inputFolder, string outputFolder)
+        {
+            foreach(string cleanPath in Directory.EnumerateFiles(inputFolder, "*.sr"))
+            {
+                string tagPath = cleanPath.Replace(".sr", ".tg");
+                string name = cleanPath.Split('\\').Last().Split('.')[0];
+                string outputCleanPath = Path.Combine(outputFolder, name + ".sr");
+                string outputTagPath = Path.Combine(outputFolder, name + ".tg");
+                RefreshTextGridWbr(cleanPath, tagPath, outputTagPath);
+                var list = File.ReadLines(outputTagPath).Select(x => StringProcess.CleanupTag(x));
+                File.WriteAllLines(outputCleanPath, list);
+            }
+        }
+
+        private void RefreshTextGridWbr(string cleanDatapath, string tagDataPath,string outputPath)
+        {
+            string tmpName = Guid.NewGuid().ToString();
+            string noEmptyPath = Path.Combine(Cfg.TmpFolder, tmpName + ".noEmpty");
+            string wbrPath = Path.Combine(Cfg.TmpFolder, tmpName + ".wbr");
+
+            var noEmptyList = File.ReadLines(cleanDatapath).Select(x => x.Replace(" ", string.Empty));
+            File.WriteAllLines(noEmptyPath, noEmptyList);
+
+            RunWordBreak rwb = new RunWordBreak(Cfg);
+            rwb.WordBreak(noEmptyPath, wbrPath);
+
+            var tagList = File.ReadLines(tagDataPath).Select(x => StringProcess.GetTagPrefixIndices(x));
+            var wbrList = File.ReadLines(wbrPath);
+            var outputList = wbrList.Zip(tagList, (x, y) => StringProcess.InsertTagToWords(x, " <bi> ", y)).Select(x => StringProcess.CleanupSpace(x));
+            File.WriteAllLines(outputPath, outputList);
+        }
+
+        private void CreateNewData(string cleanDataPath, string tagDataPath, string noEmptyPath,string wbrPath,string outputPath)
+        {
+            //var noEmptyList = File.ReadLines(cleanDataPath).Select(x => x.Replace(" ", string.Empty));
+            //File.WriteAllLines(noEmptyPath, noEmptyList);
+            var tagList = File.ReadLines(tagDataPath).Select(x => StringProcess.GetTagPrefixIndices(x));
+
+
+
+            //RunWordBreak rwb = new RunWordBreak(Cfg);
+            //rwb.WordBreak(noEmptyPath, wbrPath);
+
+            var wbrList = File.ReadLines(wbrPath);
+            var outputList = wbrList.Zip(tagList, (x, y) => StringProcess.InsertTagToWords(x, " <bi> ", y)).Select(x => StringProcess.CleanupSpace(x));
+            File.WriteAllLines(outputPath, outputList);
+        }        
+
 
         private void PrepareExpSetFromRawTags(string beforeTagPath, string afterTagPath, string enuPath, string allFolder, string expRootFolder)
         {

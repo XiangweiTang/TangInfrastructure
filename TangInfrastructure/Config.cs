@@ -12,7 +12,7 @@ namespace TangInfrastructure
     {
         public string OpusDataRootFolder { get; private set; } = @"D:\XiangweiTang\Data\Opus";
         public string ParallelDataFolder { get; private set; } = @"D:\XiangweiTang\Data\OpusPair\";
-        public string WorkFolder { get; private set; } = @"D:\tmp\CToTagShallow";
+        public string WorkFolder { get; private set; } = @"D:\tmp\RedoTextGridData\BiWbr";
         public string SrcLocale { get; private set; } = "sr";
         public int SrcVocabSize { get; private set; } = 3000;
         public string TgtLocale { get; private set; } = "tg";
@@ -26,7 +26,7 @@ namespace TangInfrastructure
         public IEnumerable<string> UsedCorpora { get; private set; } = Common.ToCollection("OpenSubtitles2018", "OpenSubtitles", "OpenSubtitles2011", "OpenSubtitles2013", "OpenSubtitles2016");
         public string TestInputPath { get; private set; } = @"D:\tmp\TagData\zh.sr";
         public string TestOutputPath { get; private set; } = @"D:\tmp\TagData\zh.tg";
-
+        public string WordBreakPython { get; private set; } = @"D:\tmp\RedoTextGridData\Wbr\Jieba.py";
         /*
          * python -m nmt.nmt --src=vi --tgt=en --vocab_prefix=D:\tmp\nmt_model\vocab  
          * --train_prefix=D:\tmp\nmt_model\train 
@@ -38,6 +38,7 @@ namespace TangInfrastructure
         public string TrainNmtCommand => Common.CreateTrainArgs(SrcLocale, TgtLocale, WorkFolder, TrainSteps);
         public string TestNmtCommand => Common.CreateTestArgs(WorkFolder, TestInputPath, TestOutputPath);
         public string MatchFileName => "matching.txt";
+        public string TmpFolder => "./tmp";
 
         XmlNode CommonNode;
         XmlDocument XDoc = new XmlDocument();
