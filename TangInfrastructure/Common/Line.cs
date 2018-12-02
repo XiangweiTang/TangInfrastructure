@@ -68,7 +68,7 @@ namespace TangInfrastructure
         abstract protected IEnumerable<object> Get();
     }
 
-    class InfoLine : Line
+    class TcLine : Line, IInterval
     {
         public double StartTime { get; protected set; } = 0;
         public double EndTime { get; protected set; } = 0;
@@ -139,6 +139,21 @@ namespace TangInfrastructure
             EndTime = double.Parse(split[5]);
             Transcription = split[6];
             SrcAudioPath = split[7];
+        }
+
+        public double Start()
+        {
+            return StartTime;
+        }
+
+        public double End()
+        {
+            return EndTime;
+        }
+
+        public string Value()
+        {
+            return Transcription;
         }
     }
 
