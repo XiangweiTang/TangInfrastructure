@@ -225,5 +225,10 @@ namespace TangInfrastructure
                     charIndex++;
             }
         }
+
+        public static string NormBi(string inputString)
+        {
+            return ContainsTagReg.Replace(inputString, "<bi>");
+        }
     }
 }
