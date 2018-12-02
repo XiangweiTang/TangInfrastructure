@@ -68,7 +68,7 @@ namespace TangInfrastructure
         abstract protected IEnumerable<object> Get();
     }
 
-    class TcLine : Line, IInterval
+    class InfoLine : Line, IInterval
     {
         public double StartTime { get; protected set; } = 0;
         public double EndTime { get; protected set; } = 0;
