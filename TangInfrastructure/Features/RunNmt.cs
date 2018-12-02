@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace TangInfrastructure
 {
@@ -18,8 +19,9 @@ namespace TangInfrastructure
         {
             string fileName = Cfg.PythonPath;
             string args = Cfg.TrainNmtCommand;
-            //Common.RunFile(fileName, args,Cfg.NmtFolder);
-            System.IO.File.WriteAllText("args.txt", args);
+            //Common.RunFile(fileName, args,Cfg.NmtFolder);'
+            string path = Path.Combine(Cfg.WorkFolder, "args.txt");
+            File.WriteAllText(path, args);
         }
 
         public void RunDemoTest()

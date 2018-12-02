@@ -13,7 +13,7 @@ namespace TangInfrastructure
 
         public string CorpusName { get; protected set; } = string.Empty;
         public string SpeakerId { get; protected set; } = "U";
-        public string SessionId { get; protected set; } = string.Empty;
+        public string ScenarioId { get; protected set; } = string.Empty;
         public string InternalId { get; protected set; } = string.Empty;
         public string Transcription { get; protected set; } = string.Empty;
 
@@ -24,10 +24,10 @@ namespace TangInfrastructure
             Set(line);
         }
 
-        public Line(string corpusName, string sessionId, string speakerId, string internalId, string transcription)
+        public Line(string corpusName, string scenarioId, string speakerId, string internalId, string transcription)
         {
             CorpusName = corpusName;
-            SessionId = sessionId;
+            ScenarioId = scenarioId;
             SpeakerId = speakerId;
             InternalId = internalId;
             Transcription = transcription;
@@ -36,7 +36,7 @@ namespace TangInfrastructure
         public Line(Line line)
         {
             CorpusName = line.CorpusName;
-            SessionId = line.SessionId;
+            ScenarioId = line.ScenarioId;
             SpeakerId = line.SpeakerId;
             InternalId = line.InternalId;
             Transcription = line.Transcription;
@@ -47,7 +47,7 @@ namespace TangInfrastructure
             Sanity.Requires(lines.Length > 0, "Merge lines requires at least one line(s).");
             CorpusName = lines[0].CorpusName;
             SpeakerId = unified ? lines[0].SpeakerId : "U";
-            SessionId = lines[0].SessionId;
+            ScenarioId = lines[0].ScenarioId;
             InternalId = internalId;
             Transcription = string.Join(" ", lines.Select(x => x.Transcription));
         }
@@ -56,7 +56,7 @@ namespace TangInfrastructure
 
         public string AudioPath(string audioRootPath)
         {
-            return Path.Combine(audioRootPath, CorpusName, SpeakerId, SessionId, InternalId + ".wav");
+            return Path.Combine(audioRootPath, CorpusName, SpeakerId, ScenarioId, InternalId + ".wav");
         }
 
         public void UpdateTranscript(string newTrans)
@@ -75,14 +75,14 @@ namespace TangInfrastructure
         public double Duration => EndTime - StartTime;
         public string SrcAudioPath { get; protected set; } = string.Empty;
 
-        public TcLine() : base() { }
+        public InfoLine() : base() { }
 
-        public TcLine(string line) : base(line)
+        public InfoLine(string line) : base(line)
         {
 
         }
 
-        public TcLine(string corpusName, string speakerId, string sessionId, string internalId, double startTime, double endTime, string transcription, string srcAudioPath)
+        public InfoLine(string corpusName, string speakerId, string sessionId, string internalId, double startTime, double endTime, string transcription, string srcAudioPath)
             : base(corpusName, sessionId, speakerId, internalId, transcription)
         {
             StartTime = startTime;
@@ -90,7 +90,7 @@ namespace TangInfrastructure
             SrcAudioPath = srcAudioPath;
         }
 
-        public TcLine(string corpusName, string speakerId, string sessionId, string internalId, string startTime, string endTime, string transcription, string srcAudioPath)
+        public InfoLine(string corpusName, string speakerId, string sessionId, string internalId, string startTime, string endTime, string transcription, string srcAudioPath)
             : base(corpusName, sessionId, speakerId, internalId, transcription)
         {
             StartTime = double.Parse(startTime);
@@ -98,7 +98,7 @@ namespace TangInfrastructure
             SrcAudioPath = srcAudioPath;
         }
 
-        public TcLine(string internalId, bool unified = true,params TcLine[] lines) : base(internalId, unified, lines)
+        public InfoLine(string internalId, bool unified = true,params InfoLine[] lines) : base(internalId, unified, lines)
         {
             StartTime = lines[0].StartTime;
             EndTime = lines.Last().EndTime;
@@ -119,7 +119,7 @@ namespace TangInfrastructure
         {
             yield return CorpusName;
             yield return SpeakerId;
-            yield return SessionId;
+            yield return ScenarioId;
             yield return InternalId;
             yield return StartTime;
             yield return EndTime;
@@ -133,7 +133,7 @@ namespace TangInfrastructure
             Sanity.RequiresLine(split.Length == 8, "TcLine");
             CorpusName = split[0];
             SpeakerId = split[1];
-            SessionId = split[2];
+            ScenarioId = split[2];
             InternalId = split[3];
             StartTime = double.Parse(split[4]);
             EndTime = double.Parse(split[5]);
@@ -157,7 +157,7 @@ namespace TangInfrastructure
         }
     }
 
-    class OpusLine : TcLine
+    class OpusLine : InfoLine
     {
         public string Locale { get; private set; } = string.Empty;
         public OpusLine(string line) : base(line) { }
@@ -176,7 +176,7 @@ namespace TangInfrastructure
             yield return Locale;
             yield return CorpusName;
             yield return SpeakerId;
-            yield return SessionId;
+            yield return ScenarioId;
             yield return InternalId;
             yield return StartTime;
             yield return EndTime;
@@ -191,7 +191,7 @@ namespace TangInfrastructure
             Locale = split[0];
             CorpusName = split[1];
             SpeakerId = split[2];
-            SessionId = split[3];
+            ScenarioId = split[3];
             InternalId = split[4];
             StartTime = double.Parse(split[5]);
             EndTime = double.Parse(split[6]);

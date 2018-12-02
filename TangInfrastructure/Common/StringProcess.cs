@@ -170,5 +170,24 @@ namespace TangInfrastructure
 
             return string.Join(" ", noTagList);
         }
+
+        public static string SplitWord(string s)
+        {
+            return string.Join(" ", SplitWordParts(s));
+        }
+
+        private static IEnumerable<object> SplitWordParts(string s)
+        {
+            foreach(string word in s.Split(' '))
+            {
+                if (OnlyTagReg.IsMatch(word))
+                    yield return word;
+                else
+                {
+                    foreach (char c in word)
+                        yield return c;
+                }
+            }
+        }
     }
 }
