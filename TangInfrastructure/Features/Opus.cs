@@ -36,8 +36,8 @@ namespace TangInfrastructure
             string srcFilePath = pathLine.Split('\t')[1];
             string tgtFilePath = pathLine.Split('\t')[3];
             Console.WriteLine("Processing " + srcFilePath);
-            var srcList = File.ReadLines(srcFilePath).Select(x => new TcLine(x).Transcription).Select(x => StringProcess.CleanupEnuString(x));
-            var tgtList = File.ReadLines(tgtFilePath).Select(x => new TcLine(x).Transcription).Select(x => StringProcess.CleanupChsString(x));
+            var srcList = File.ReadLines(srcFilePath).Select(x => new InfoLine(x).Transcription).Select(x => StringProcess.CleanupEnuString(x));
+            var tgtList = File.ReadLines(tgtFilePath).Select(x => new InfoLine(x).Transcription).Select(x => StringProcess.CleanupChsString(x));
             return srcList.Zip(tgtList, (x, y) => new Tuple<string, string>(x, y)).Where(ValidPair);
         }
 
@@ -126,8 +126,8 @@ namespace TangInfrastructure
             for (int i = 0; i < nodes.Count; i++)
             {
                 string pair = nodes[i].Attributes["xtargets"].Value;
-                TcLine fromLine = new TcLine();
-                TcLine toLine = new TcLine();
+                InfoLine fromLine = new InfoLine();
+                InfoLine toLine = new InfoLine();
                 try
                 {
                     var fromIds = pair.Split(';')[0].Split(' ');
@@ -146,7 +146,7 @@ namespace TangInfrastructure
             }
         }
 
-        private static TcLine CreateTcFromXml(IEnumerable< XmlNode> segNodes, string locale, string corpus, string sessionId, string internalId)
+        private static InfoLine CreateTcFromXml(IEnumerable< XmlNode> segNodes, string locale, string corpus, string sessionId, string internalId)
         {
             var list = segNodes.SelectMany(x => x.SelectNodes("w").Cast<XmlNode>().Select(y => y.InnerText));
             string trans = StringProcess.CleanupSpace(string.Join(" ", list));
@@ -172,7 +172,7 @@ namespace TangInfrastructure
                 }
                 catch { }
             }
-            return new TcLine(corpus, "U", sessionId, internalId, startTime, endTime, trans, "<NA/>");
+            return new InfoLine(corpus, "U", sessionId, internalId, startTime, endTime, trans, "<NA/>");
         }
         #endregion
 

@@ -227,7 +227,7 @@ namespace TangInfrastructure
             return second;
         }
 
-        public static IEnumerable<TcLine> ResetTimeStamp(IEnumerable<TcLine> list)
+        public static IEnumerable<InfoLine> ResetTimeStamp(IEnumerable<InfoLine> list)
         {
             double lastEnd = 0;           
             foreach(var line in list)
@@ -247,7 +247,7 @@ namespace TangInfrastructure
             switch (type.ToLower())
             {
                 case "tc":
-                    return list.Select(x => new TcLine(x));
+                    return list.Select(x => new InfoLine(x));
                 case "opus":
                     return list.Select(x => new OpusLine(x));
                 default:
