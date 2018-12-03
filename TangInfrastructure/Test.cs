@@ -18,7 +18,12 @@ namespace TangInfrastructure
         Regex Tags = new Regex("<[^>]*>", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            RefreshTextGridWbr(@"D:\XiangweiTang\Data\Bank\StChar", @"D:\XiangweiTang\Data\Bank\StWord", "<st>");
+            string beforePath = @"D:\tmp\RawData\all.zh";
+            string afterPath = @"D:\tmp\RawData\all.st";
+            string enuPath = @"D:\tmp\RawData\all.en";
+            string allFolder = @"D:\tmp\StAll";
+            string expRootFolder = @"D:\tmp\St";
+            PrepareExpSetFromRawTags(beforePath, afterPath, enuPath, allFolder, expRootFolder);
         }
 
         class Dedupe : IEqualityComparer<string>
@@ -41,7 +46,7 @@ namespace TangInfrastructure
 
         private void RefreshTextGridWbr(string inputFolder, string outputFolder, string tag)
         {
-            foreach(string cleanPath in Directory.EnumerateFiles(inputFolder, "*.sr"))
+            foreach(string cleanPath in Directory.EnumerateFiles(inputFolder, " *.sr"))
             {
                 string tagPath = cleanPath.Replace(".sr", ".tg");
                 string name = cleanPath.Split('\\').Last().Split('.')[0];

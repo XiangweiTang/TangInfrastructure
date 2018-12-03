@@ -86,6 +86,7 @@ namespace TangInfrastructure
         public static void FromTagToClean(string tagFolder, string cleanFolder, string tagExt, string otherExt)
         {
             Directory.CreateDirectory(tagFolder);
+            Directory.CreateDirectory(cleanFolder);
             Console.WriteLine("Transfering tag files...");
             Common.FolderTransport(tagFolder, cleanFolder, Common.RemoveTagsFromFile, "*" + tagExt);
             Console.WriteLine("Transfering non-tag files...");
