@@ -19,17 +19,17 @@ namespace TangInfrastructure
         {
             string fileName = Cfg.PythonPath;
             string args = Cfg.TrainNmtCommand;
-            //Common.RunFile(fileName, args,Cfg.NmtFolder);'
-            string path = Path.Combine(Cfg.WorkFolder, "args.txt");
-            File.WriteAllText(path, "python " + args);
+            Common.RunFile(fileName, args,Cfg.NmtFolder);
+            //string path = Path.Combine(Cfg.WorkFolder, "args.txt");
+            //File.WriteAllText(path, "python " + args);
         }
 
         public void RunDemoTest()
         {
             string fileName = Cfg.PythonPath;
             string args = Cfg.TestNmtCommand;
-            //Common.RunFile(fileName, args, Cfg.NmtFolder);
-            System.IO.File.WriteAllText("args.txt", args);
+            Common.RunFile(fileName, args, Cfg.NmtFolder);
+            //System.IO.File.WriteAllText("args.txt", args);
         }
     }
 }

@@ -17,9 +17,18 @@ namespace TangInfrastructure
 
         public void WordBreak(string inputPath, string outputPath)
         {
-            string intermediaPath = Path.Combine(Cfg.TmpFolder, Guid.NewGuid().ToString() + ".txt");
-            ToWbr(inputPath, intermediaPath);
-            CleanupWbr(intermediaPath, outputPath);
+            string name = "59dcb025-8c06-44ad-8d92-087e8219237a";
+            string noSpacePath = Path.Combine(Cfg.TmpFolder, name + ".noSpace");
+            string wbrPath = Path.Combine(Cfg.TmpFolder, name + ".wbr");
+            //RemoveSpac(inputPath, noSpacePath);
+            //ToWbr(noSpacePath, wbrPath);
+            CleanupWbr(wbrPath, outputPath);
+        }
+
+        private void RemoveSpac(string spacePath, string noSpacePath)
+        {
+            var list = File.ReadLines(spacePath).Select(x => x.Replace(" ", string.Empty));
+            File.WriteAllLines(noSpacePath, list);
         }
 
         private void ToWbr(string inputPath, string wbrPath)

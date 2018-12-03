@@ -12,21 +12,21 @@ namespace TangInfrastructure
     {
         public string OpusDataRootFolder { get; private set; } = @"D:\XiangweiTang\Data\Opus";
         public string ParallelDataFolder { get; private set; } = @"D:\XiangweiTang\Data\OpusPair\";
-        public string WorkFolder { get; private set; } = @"D:\tmp\InsertTag\stWord";
-        public string SrcLocale { get; private set; } = "sr";
-        public int SrcVocabSize { get; private set; } = 3000;
-        public string TgtLocale { get; private set; } = "tg";
-        public int TgtVocabSize { get; private set; } = 3000;
+        public string WorkFolder { get; set; } = @"D:\tmp\InsertTag\BiWord";
+        public string SrcLocale { get; private set; } = "zh";
+        public int SrcVocabSize { get; private set; } = 10000;
+        public string TgtLocale { get; private set; } = "en";
+        public int TgtVocabSize { get; private set; } = 10000;
         public string PythonPath { get; private set; } = @"C:\Users\tangx\AppData\Local\Programs\Python\Python36\python.exe";
         public string CmdPath { get; private set; } = string.Empty;
         public string PowerShellPath { get; private set; } = string.Empty;        
         public string SoxPath { get; private set; } = @"C:\Program Files (x86)\sox-14-4-2\sox.exe";
-        public string NmtFolder { get; private set; } = @"D:\XiangweiTang\Python\nmt";
+        public string NmtFolder { get; private set; } = @"D:\Files\Python\nmt";
         public int TrainSteps { get; private set; } = 20000;
         public IEnumerable<string> UsedCorpora { get; private set; } = Common.ToCollection("OpenSubtitles2018", "OpenSubtitles", "OpenSubtitles2011", "OpenSubtitles2013", "OpenSubtitles2016");
-        public string TestInputPath { get; private set; } = @"D:\tmp\TagData\zh.sr";
-        public string TestOutputPath { get; private set; } = @"D:\tmp\TagData\zh.tg";
-        public string WordBreakPython { get; private set; } = @"D:\tmp\RedoTextGridData\Wbr\Jieba.py";
+        public string TestInputPath { get; private set; } = @"D:\RawData\all.wbr";
+        public string TestOutputPath { get; private set; } = @"D:\RawData\all.bi";
+        public string WordBreakPython { get; private set; } = @"D:\tmp\RedoTextGridData\Wbr\wbr.py";
         /*
          * python -m nmt.nmt --src=vi --tgt=en --vocab_prefix=D:\tmp\nmt_model\vocab  
          * --train_prefix=D:\tmp\nmt_model\train 

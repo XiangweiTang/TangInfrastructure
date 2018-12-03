@@ -18,7 +18,35 @@ namespace TangInfrastructure
         Regex Tags = new Regex("<[^>]*>", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            RefreshTextGridWbr(@"D:\XiangweiTang\Data\Bank\StChar", @"D:\XiangweiTang\Data\Bank\StWord", "<st>");
+            Init();
+            string srcPath = @"D:\RawData\all.zh";
+            string tgtPath = @"D:\RawData\all.wbr";
+            string enuPath= @"D:\RawData\all.en";
+            string allFolder = @"D:\BiWbrAll";
+            string expRootFolder = @"D:\tmp\BiWbr";
+            Console.WriteLine("Word break.");
+            //RunWordBreak rwb = new RunWordBreak(Cfg);
+            //rwb.WordBreak(srcPath, tgtPath);
+
+            Console.WriteLine("Run infer.");
+            RunNmt rn = new RunNmt(Cfg);
+            rn.RunDemoTest();
+
+            Console.WriteLine("Split");
+            PrepareExpSetFromRawTags(tgtPath, Cfg.TestOutputPath, enuPath, allFolder, expRootFolder);
+
+            Console.WriteLine("Run train");
+            Cfg.WorkFolder = Path.Combine(expRootFolder, "Clean");
+            rn = new RunNmt(Cfg);
+            rn.RunDemoTrain();
+
+            Cfg.WorkFolder = Path.Combine(expRootFolder, "Tag");
+            rn = new RunNmt(Cfg);
+            rn.RunDemoTrain();
+
+            Cfg.WorkFolder = Path.Combine(expRootFolder, "Random");
+            rn = new RunNmt(Cfg);
+            rn.RunDemoTrain();
         }
 
         class Dedupe : IEqualityComparer<string>
@@ -41,7 +69,7 @@ namespace TangInfrastructure
 
         private void RefreshTextGridWbr(string inputFolder, string outputFolder, string tag)
         {
-            foreach(string cleanPath in Directory.EnumerateFiles(inputFolder, "*.sr"))
+            foreach(string cleanPath in Directory.EnumerateFiles(inputFolder, " *.sr"))
             {
                 string tagPath = cleanPath.Replace(".sr", ".tg");
                 string name = cleanPath.Split('\\').Last().Split('.')[0];
@@ -70,8 +98,8 @@ namespace TangInfrastructure
 
         private void CreateNewData(string cleanDataPath, string tagDataPath, string noEmptyPath,string wbrPath,string outputPath)
         {
-            //var noEmptyList = File.ReadLines(cleanDataPath).Select(x => x.Replace(" ", string.Empty));
-            //File.WriteAllLines(noEmptyPath, noEmptyList);
+            var noEmptyList = File.ReadLines(cleanDataPath).Select(x => x.Replace(" ", string.Empty));
+            File.WriteAllLines(noEmptyPath, noEmptyList);
             var tagList = File.ReadLines(tagDataPath).Select(x => StringProcess.GetTagPrefixIndices(x));
 
 
@@ -99,9 +127,9 @@ namespace TangInfrastructure
             PrepareData.SetTagRatio(pairs.Item1);
             PrepareData.SetTag(Constants.BI_TAG);
             PrepareData.FromCleanToRandomTag(cleanFolder, randomFolder, Cfg.SrcLocale, Cfg.TgtLocale);
-            PrepareData.CreateBatchCommand(Cfg.SrcLocale, Cfg.TgtLocale, tagFolder, Cfg.TrainSteps);
-            PrepareData.CreateBatchCommand(Cfg.SrcLocale, Cfg.TgtLocale, cleanFolder, Cfg.TrainSteps);
-            PrepareData.CreateBatchCommand(Cfg.SrcLocale, Cfg.TgtLocale, randomFolder, Cfg.TrainSteps);
+            //PrepareData.CreateBatchCommand(Cfg.SrcLocale, Cfg.TgtLocale, tagFolder, Cfg.TrainSteps);
+            //PrepareData.CreateBatchCommand(Cfg.SrcLocale, Cfg.TgtLocale, cleanFolder, Cfg.TrainSteps);
+            //PrepareData.CreateBatchCommand(Cfg.SrcLocale, Cfg.TgtLocale, randomFolder, Cfg.TrainSteps);
         }
 
         private void PrepareOpusData()
