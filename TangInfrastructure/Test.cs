@@ -18,35 +18,38 @@ namespace TangInfrastructure
         Regex Tags = new Regex("<[^>]*>", RegexOptions.Compiled);
         public Test(string[] args)
         {
-            Init();
-            string srcPath = @"D:\RawData\all.zh";
-            string tgtPath = @"D:\RawData\all.wbr";
-            string enuPath= @"D:\RawData\all.en";
-            string allFolder = @"D:\BiWbrAll";
-            string expRootFolder = @"D:\tmp\BiWbr";
-            Console.WriteLine("Word break.");
+        }
+
+        private void RunSchedule()
+        {
+            string srcPath = @"D:\tmp\RawData\all.zh";
+            string tgtPath = @"D:\tmp\RawData\all.wbr";
+            string enuPath = @"D:\tmp\RawData\all.en";
+            string allFolder = @"D:\tmp\StWbrAll";
+            string expRootFolder = @"D:\tmp\StWbr";
+            //Console.WriteLine("Word break.");
             //RunWordBreak rwb = new RunWordBreak(Cfg);
             //rwb.WordBreak(srcPath, tgtPath);
 
-            Console.WriteLine("Run infer.");
-            RunNmt rn = new RunNmt(Cfg);
-            rn.RunDemoTest();
+            //Console.WriteLine("Run infer.");
+            //RunNmt rn = new RunNmt(Cfg);
+            //rn.RunDemoTest();
 
             Console.WriteLine("Split");
             PrepareExpSetFromRawTags(tgtPath, Cfg.TestOutputPath, enuPath, allFolder, expRootFolder);
 
-            Console.WriteLine("Run train");
-            Cfg.WorkFolder = Path.Combine(expRootFolder, "Clean");
-            rn = new RunNmt(Cfg);
-            rn.RunDemoTrain();
+            //Console.WriteLine("Run train");
+            //Cfg.WorkFolder = Path.Combine(expRootFolder, "Clean");
+            //rn = new RunNmt(Cfg);
+            //rn.RunDemoTrain();
 
-            Cfg.WorkFolder = Path.Combine(expRootFolder, "Tag");
-            rn = new RunNmt(Cfg);
-            rn.RunDemoTrain();
+            //Cfg.WorkFolder = Path.Combine(expRootFolder, "Tag");
+            //rn = new RunNmt(Cfg);
+            //rn.RunDemoTrain();
 
-            Cfg.WorkFolder = Path.Combine(expRootFolder, "Random");
-            rn = new RunNmt(Cfg);
-            rn.RunDemoTrain();
+            //Cfg.WorkFolder = Path.Combine(expRootFolder, "Random");
+            //rn = new RunNmt(Cfg);
+            //rn.RunDemoTrain();
         }
 
         class Dedupe : IEqualityComparer<string>
