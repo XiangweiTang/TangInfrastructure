@@ -12,7 +12,7 @@ namespace TangInfrastructure
         private static List<string> Head = new List<string> { Constants.UNK, Constants.S_START, Constants.S_END };
 
         private static double TagRatio = 0.3;
-        private static string Tag = Constants.BI_TAG;
+        private static string Tag = Constants.ST_TAG;
 
         private static Random Rand = new Random();
 
@@ -105,7 +105,7 @@ namespace TangInfrastructure
             foreach(string word in list)
             {
                 total++;
-                if (word == Constants.BI_TAG)
+                if (word == Constants.ST_TAG)
                     tag++;
             }
 
@@ -130,6 +130,15 @@ namespace TangInfrastructure
             File.Copy(cleanVocabPath, randomTagVocabPath, true);
         }
 
+        public static void FromCleanToChaosTag(string cleanFolder, string chaosTagFolder, string tagExt, string otherExt)
+        {
+            Directory.CreateDirectory(chaosTagFolder);
+            Console.WriteLine("Transfering tag files...");
+            Common.FolderTransport(cleanFolder, chaosTagFolder, ChaosAddTag, "*" + tagExt);
+            Console.WriteLine("Transfering non-tag files...");
+            Common.FolderTransport(cleanFolder, chaosTagFolder, File.Copy, "*" + otherExt);
+        }
+
         private static void RandomAddTag(string inputPath, string outputPath)
         {
             var list = File.ReadLines(inputPath).Select(x => RandomAddTag(x));
@@ -150,6 +159,48 @@ namespace TangInfrastructure
                 if (Rand.NextDouble() < TagRatio)
                     yield return Tag;
             }
+        }
+
+        private static void ChaosAddTag(string inputPath, string outputPath)
+        {
+            var list = File.ReadLines(inputPath).Select(x => ChaosAddTag(x));
+            File.WriteAllLines(outputPath, list);
+        }
+
+        private static string ChaosAddTag(string line)
+        {
+            return string.Join(" ", ChaosTagParts(line));
+        }
+
+        private static IEnumerable<object> ChaosTagParts(string line)
+        {
+            string word = "";
+            foreach(char c in line)
+            {
+                if(c==' ')
+                {
+                    if (!string.IsNullOrWhiteSpace(word))
+                    {
+                        yield return word;
+                        word = "";
+                    }
+                }
+                else
+                {
+                    word += c;
+                }
+                if (Rand.NextDouble() <= TagRatio / 2)
+                {
+                    if (!string.IsNullOrWhiteSpace(word))
+                    {
+                        yield return word;
+                        word = "";
+                    }
+                    yield return Tag;
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(word))
+                yield return word;
         }
 
         public static Tuple<string, string> CreateAllFiles(string beforeTagPath, string afterTagPath, string nonTagPath, string outputFolder, string tagExt, string otherExt)
