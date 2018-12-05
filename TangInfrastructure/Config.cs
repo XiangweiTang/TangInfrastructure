@@ -24,8 +24,8 @@ namespace TangInfrastructure
         public string NmtFolder { get; private set; } = @"D:\Files\Python\nmt";
         public int TrainSteps { get; private set; } = 20000;
         public IEnumerable<string> UsedCorpora { get; private set; } = Common.ToCollection("OpenSubtitles2018", "OpenSubtitles", "OpenSubtitles2011", "OpenSubtitles2013", "OpenSubtitles2016");
-        public string TestInputPath { get; private set; } = @"D:\RawData\all.wbr";
-        public string TestOutputPath { get; private set; } = @"D:\tmp\RawData\all.st";
+        public string TestInputPath { get; set; } = @"D:\RawData\all.wbr";
+        public string TestOutputPath { get;  set; } = @"D:\tmp\RawData\all.st";
         public string WordBreakPython { get; private set; } = @"D:\tmp\RedoTextGridData\Wbr\wbr.py";
         /*
          * python -m nmt.nmt --src=vi --tgt=en --vocab_prefix=D:\tmp\nmt_model\vocab  

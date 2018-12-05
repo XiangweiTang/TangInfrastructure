@@ -18,7 +18,59 @@ namespace TangInfrastructure
         Regex Tags = new Regex("<[^>]*>", RegexOptions.Compiled);
         public Test(string[] args)
         {
+            string zhWbrPath = @"";
+            string enPath = @"";
+            string biInferFolder = @"";
+            string stInferFolder = @"";
+            string biAllFolder = @"";
+            string stAllFolder = @"";
+            string biExpRootPath = @"";
+            string stExpRootPath = @"";
+            RunSchedule(zhWbrPath, enPath, biInferFolder, biAllFolder, biExpRootPath, Constants.BI_TAG);
+            RunSchedule(zhWbrPath, enPath, stInferFolder, stAllFolder, stExpRootPath, Constants.ST_TAG);
         }
+
+        private void Dedupe(string folder)
+        {
+            string trainEnPath = Path.Combine(folder, "train.en");
+            string trainZhPath = Path.Combine(folder, "train.zh");
+            var trainList = Common.ReadPairs(trainZhPath, trainEnPath).ToList();
+            string testEnPath = Path.Combine(folder, "test.en");
+            string testZhPath = Path.Combine(folder, "test.zh");
+            var testList = Common.ReadPairs(testZhPath, testEnPath);
+            string devEnPath = Path.Combine(folder, "dev.en");
+            string devZhPath = Path.Combine(folder, "dev.zh");
+            var devList = Common.ReadPairs(devZhPath, devEnPath);
+
+            int tt = trainList.Intersect(testList).Count();
+            int td = trainList.Intersect(devList).Count();
+            Console.WriteLine(tt);
+            Console.WriteLine(td);
+        }
+
+        private void RunInfer(string inputPath, string outputPath, string workFolder)
+        {
+            Console.WriteLine("Run infer.");
+            RunNmt rn = new RunNmt(Cfg);
+            Cfg.WorkFolder = workFolder;
+            Cfg.TestInputPath = inputPath;
+            Cfg.TestOutputPath = outputPath;
+            rn.RunDemoTest();
+        }
+        
+        private void RunSchedule(string zhWbrPath, string enPath, string inferWorkFolder, string allFolder,string expRootPath,string tag)
+        {
+            string inferPath = Path.Combine(allFolder, "all.tag");
+            RunInfer(zhWbrPath, inferPath, inferWorkFolder);
+            var list = PrepareExpSetFromRawTags(zhWbrPath, inferPath, enPath, allFolder, expRootPath, tag);
+            RunNmt rn = new RunNmt(Cfg);
+            foreach(string folderPath in list)
+            {
+                Cfg.WorkFolder = folderPath;
+                new RunNmt(Cfg).RunDemoTrain();
+            }
+        }
+        
 
         private void RunSchedule()
         {
@@ -31,38 +83,27 @@ namespace TangInfrastructure
             //RunWordBreak rwb = new RunWordBreak(Cfg);
             //rwb.WordBreak(srcPath, tgtPath);
 
-            //Console.WriteLine("Run infer.");
-            //RunNmt rn = new RunNmt(Cfg);
-            //rn.RunDemoTest();
+            Console.WriteLine("Run infer.");
+            RunNmt rn = new RunNmt(Cfg);
+            Cfg.TestInputPath = @"";
+            Cfg.TestOutputPath = @"";
+            rn.RunDemoTest();
 
             Console.WriteLine("Split");
-            PrepareExpSetFromRawTags(tgtPath, Cfg.TestOutputPath, enuPath, allFolder, expRootFolder);
+            PrepareExpSetFromRawTags(tgtPath, Cfg.TestOutputPath, enuPath, allFolder, expRootFolder, Constants.BI_TAG);
 
-            //Console.WriteLine("Run train");
-            //Cfg.WorkFolder = Path.Combine(expRootFolder, "Clean");
-            //rn = new RunNmt(Cfg);
-            //rn.RunDemoTrain();
+            Console.WriteLine("Run train");
+            Cfg.WorkFolder = Path.Combine(expRootFolder, "Clean");
+            rn = new RunNmt(Cfg);
+            rn.RunDemoTrain();
 
-            //Cfg.WorkFolder = Path.Combine(expRootFolder, "Tag");
-            //rn = new RunNmt(Cfg);
-            //rn.RunDemoTrain();
+            Cfg.WorkFolder = Path.Combine(expRootFolder, "Tag");
+            rn = new RunNmt(Cfg);
+            rn.RunDemoTrain();
 
-            //Cfg.WorkFolder = Path.Combine(expRootFolder, "Random");
-            //rn = new RunNmt(Cfg);
-            //rn.RunDemoTrain();
-        }
-
-        class Dedupe : IEqualityComparer<string>
-        {
-            public bool Equals(string x, string y)
-            {
-                return StringProcess.CleanupTag(x) == StringProcess.CleanupTag(y);
-            }
-
-            public int GetHashCode(string x)
-            {
-                return StringProcess.CleanupTag(x).GetHashCode();
-            }
+            Cfg.WorkFolder = Path.Combine(expRootFolder, "Random");
+            rn = new RunNmt(Cfg);
+            rn.RunDemoTrain();
         }
 
         private void Init()
@@ -116,23 +157,29 @@ namespace TangInfrastructure
         }        
 
 
-        private void PrepareExpSetFromRawTags(string beforeTagPath, string afterTagPath, string enuPath, string allFolder, string expRootFolder)
+        private IEnumerable<string> PrepareExpSetFromRawTags(string beforeTagPath, string afterTagPath, string enuPath, string allFolder, string expRootFolder, string tag)
         {
             // Suppose we've already had the TAGGed files
             string tagFolder = Path.Combine(expRootFolder, "Tag");
             string cleanFolder = Path.Combine(expRootFolder, "Clean");
             string randomFolder = Path.Combine(expRootFolder, "Random");
+            string chaosFolder = Path.Combine(expRootFolder, "Chaos");
             // Create all.zh and all.en, where all files are all valid files.
             var pairs = PrepareData.CreateAllFiles(beforeTagPath, afterTagPath, enuPath, allFolder, "zh", "en");
             var list = Common.ReadPairs(pairs.Item1, pairs.Item2);
             PrepareData.SplitPairData(list, tagFolder, Cfg.SrcLocale, Cfg.TgtLocale, Cfg.SrcVocabSize, Cfg.TgtVocabSize, 5000, 5000, true);
             PrepareData.FromTagToClean(tagFolder, cleanFolder, Cfg.SrcLocale, Cfg.TgtLocale);
             PrepareData.SetTagRatio(pairs.Item1);
-            PrepareData.SetTag(Constants.BI_TAG);
+            PrepareData.SetTag(tag);
             PrepareData.FromCleanToRandomTag(cleanFolder, randomFolder, Cfg.SrcLocale, Cfg.TgtLocale);
+            PrepareData.FromCleanToChaosTag(cleanFolder, chaosFolder, Cfg.SrcLocale, Cfg.TgtLocale);
             //PrepareData.CreateBatchCommand(Cfg.SrcLocale, Cfg.TgtLocale, tagFolder, Cfg.TrainSteps);
             //PrepareData.CreateBatchCommand(Cfg.SrcLocale, Cfg.TgtLocale, cleanFolder, Cfg.TrainSteps);
             //PrepareData.CreateBatchCommand(Cfg.SrcLocale, Cfg.TgtLocale, randomFolder, Cfg.TrainSteps);
+            yield return chaosFolder;
+            yield return cleanFolder;
+            yield return randomFolder;
+            yield return tagFolder;
         }
 
         private void PrepareOpusData()
